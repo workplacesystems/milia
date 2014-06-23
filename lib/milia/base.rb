@@ -84,7 +84,7 @@ module Milia
 # All the characteristics of acts_as_universal AND also does the magic
 # of binding a user to a account
 # ------------------------------------------------------------------------
-      def acts_as_universal_and_determines_account()
+      def acts_as_universal_and_determines_user()
         include ::Milia::InviteMember
         has_and_belongs_to_many :accounts
 

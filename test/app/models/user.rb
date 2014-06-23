@@ -1,5 +1,5 @@
 class User < ActiveRecord::Base
-  acts_as_universal_and_determines_account
+  acts_as_universal_and_determines_user
   
   # Include default devise modules. Others available are:
   # :lockable, :encryptable,  and :omniauthable

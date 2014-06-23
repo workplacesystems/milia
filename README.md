@@ -1,39 +1,39 @@
 # milia
 
-Milia is a multi-tenanting gem for hosted Rails 4.0.x applications which use
+Milia is a multi-accounting gem for hosted Rails 4.0.x applications which use
 the devise gem for user authentication and registrations. Milia comes with 
-tailoring for common use cases needing multi-tenanting with user authentication.
+tailoring for common use cases needing multi-accounting with user authentication.
 
-## Basic concepts for the milia multi-tenanting gem
+## Basic concepts for the milia multi-accounting gem
 
-### multi-tenanting highlights
+### multi-accounting highlights
 
 * should be transparent to the main application code
 * should be symbiotic with user authentication
 * should raise exceptions upon attempted illegal access
-* should force tenanting (not allow sloppy access to all tenant records)
-* should allow application flexibility upon new tenant sign-up, 
+* should force accounting (not allow sloppy access to all account records)
+* should allow application flexibility upon new account sign-up, 
   usage of eula information, etc
 * should be as non-invasive (as possible) to Rails code
-* row-based tenanting is used
-* default_scope is used to enforce tenanting
+* row-based accounting is used
+* default_scope is used to enforce accounting
 
-The author used schema-based tenanting in the past but found it deficient for
+The author used schema-based accounting in the past but found it deficient for
 the following reasons: most DBMS are optimized to handle enormous number of
 rows but not an enormous number of schema (tables). Schema-based tenancy took a
 performance hit, was seriously time-consuming to backup and restore, was invasive
 into the Rails code structure (monkey patching), was complex to implement, and
 couldn't use Rails migration tools as-is.
 
-### tenants/users vs organizations/members
+### accounts/users vs organizations/members
 
-A tenant == an organization; users == members of the organization. 
-Only organizations sign up for new tenants, not members (users).  
+A account == an organization; users == members of the organization. 
+Only organizations sign up for new accounts, not members (users).  
 The very first user of an organization, let's call him the Organizer, 
 is the one responsible for initiating the organizational signup.
-The Organizer becomes the first member (user) of the organization (tenant). 
-Thereafter, other members only obtain entry to the organization (tenant) 
-by invitation. New tenants are not created for every new user.
+The Organizer becomes the first member (user) of the organization (account). 
+Thereafter, other members only obtain entry to the organization (account) 
+by invitation. New accounts are not created for every new user.
 
 ## Version
 
@@ -47,10 +47,10 @@ it is essentially obsolete. Go with v1.0.x
 * Rails 4.0.x adapted (changes to terms, strong_parameters, default_scope, etc)
 * Devise 3.2.x adapted
 * All the changes which version 0.3.x advised to be inserted in applications_controller.rb are now automatically loaded into ActionController by milia.
-* that includes authenticate_tenant!
+* that includes authenticate_account!
 * so if you've been using an older version of milia, you'll need to remove that stuff from applications_controller!
 * generators for easy install of basic rails/milia/devise
-* callback after successful authenticate_tenant!
+* callback after successful authenticate_account!
 * debug & info logging and trace for troubleshooting
 * improved invite_member support
 * revised README instructions
@@ -78,7 +78,7 @@ Further details about this process can be found via the sources listed below:
 * if you want to know exactly everything the generators are doing, see the manual_sample.sh
   - instructions are very detailed and loaded with comments (600 lines!).
   - Stage one: with simple devise and no milia, 
-  - Stage two: installing milia for complete tenanting,
+  - Stage two: installing milia for complete accounting,
   - Stage three: adding in invite_member capability
 * the entire sample is also fully available on github, if you wish to check your work. diff can be your friend.
   this sample on github, however, will always be for the latest release or latest beta (whichever is most recent).
@@ -103,7 +103,7 @@ Further details about this process can be found via the sources listed below:
     - if you're a first time milia implementer, please use both the 
       README and either of the two above documents for assistance: it will save you time.
 
-## converting an existing app to multi-tenanted
+## converting an existing app to multi-accounted
 
 It is doable, but you'll need to first understand how milia basically is installed. I'd still recommend 
 bringing up the sample-milia-app, getting it working, and then figuring out how to either graft it onto your app.
@@ -120,7 +120,7 @@ and devise 3.2 install.
   minor bug fixed;  mixed-in controller methods are now public, not
   private.
 
-* changes in beta-6: user_params added to Tenant.create_new_tenant;
+* changes in beta-6: user_params added to Account.create_new_account;
   ability to add additional whitelist parameters during config
 
 * changes in beta-5: logging, callback, bug fixes
@@ -152,41 +152,41 @@ Kibali is primarily oriented for functioning as a before_action role authenticat
 
 ## Structure
 
-* necessary models: user, tenant
-* necessary migrations: user, tenant, tenants_users (join table)
+* necessary models: user, account
+* necessary migrations: user, account, accounts_users (join table)
 
-You must understand which of your apps models will be tenanted ( <i>acts_as_tenant</i> ) 
+You must understand which of your apps models will be accounted ( <i>acts_as_account</i> ) 
 and which will be universal ( <i>acts_as_universal</i>). Universal data NEVER has critical user/company
 information in the table. It is usually only for system-wide constants. For example, if you've put
 too much user information in the users table, you'll need to seperate it out. by definition, the devise 
 user table MUST be universal and should only contain email, encrypted password, and devise-required data.
-ALL OTHER USER DATA (name, phone, address, etc) should be broken out into a tenanted table (say called member_data)
+ALL OTHER USER DATA (name, phone, address, etc) should be broken out into a accounted table (say called member_data)
 which belongs_to :user, and in the User model, has_one :member_data. Ditto for organization (account or company)
 information.
 
-Most of your tables (except for pure join tables, users, and tenants) SHOULD BE tenanted. You should rarely have
+Most of your tables (except for pure join tables, users, and accounts) SHOULD BE accounted. You should rarely have
 universal tables, even for things you consider to be system settings. At some time in the future, your accounts
 (organizations) will want to tailor/customize this data. So might as well start off correctly by making the
-table tenanted. It costs you nothing to do so now at the beginning. It does mean that you will need to seed 
-these tables whenever a new tenant (organizational account) is created.
+table accounted. It costs you nothing to do so now at the beginning. It does mean that you will need to seed 
+these tables whenever a new account (organizational account) is created.
 
 Finally: 
 
-* tenants = organizational accounts and are created via sign up, a one-time event. this also creates the 
+* accounts = organizational accounts and are created via sign up, a one-time event. this also creates the 
 first MEMBER of that account in your app who is usually the organizing admin. This person can then issue
 invitations (below) to bring other members into the account on the app.
-* members = members WITHIN a tenant and are created by invitation only; they do NOT sign up. An invitation is
-sent to them, they click on an activate or confirm link, and then they become a member of a tenanted group.
-* The invitation process involves creating both a new user (within the current_tenant) and its corresponding
+* members = members WITHIN a account and are created by invitation only; they do NOT sign up. An invitation is
+sent to them, they click on an activate or confirm link, and then they become a member of a accounted group.
+* The invitation process involves creating both a new user (within the current_account) and its corresponding
 member_data records.
-* ALL models (whether tenanted or universal) are expected to have a field in the table labelled: tenant_id.
-* YOUR CODE SHOULD NEVER EVER TRY TO CHANGE OR SET THE tenant_id OF A RECORD. milia will not allow it, milia
+* ALL models (whether accounted or universal) are expected to have a field in the table labelled: account_id.
+* YOUR CODE SHOULD NEVER EVER TRY TO CHANGE OR SET THE account_id OF A RECORD. milia will not allow it, milia
 will check for deviance; milia will raise exceptions if it's wrong; and milia will override it to maintain integrity.
-* Tenanted records will have tenant_id set to the appropriate tenant automagically by milia.
-* Universal records will have tenant_id always set to nil, automagically by milia; and references to any
+* Accounted records will have account_id set to the appropriate account automagically by milia.
+* Universal records will have account_id always set to nil, automagically by milia; and references to any
 universal table will ALWAYS expect this field to be nil.
-* Pure join tables (has_and_belongs_to_many HABTM associations) get neither designation (tenant nor universal).
-The way that rails accesses these ensures that it will validate the tenant of joined member. A pure HABTM join
+* Pure join tables (has_and_belongs_to_many HABTM associations) get neither designation (account nor universal).
+The way that rails accesses these ensures that it will validate the account of joined member. A pure HABTM join
 table is created with generation such as follows:
 
 ```
@@ -212,7 +212,7 @@ Later sections of the README will enumerate:
 
 ### Getting started for the sample application
 
-Multi-tenanting, much like user authentication, exists within the large scheme of
+Multi-accounting, much like user authentication, exists within the large scheme of
 an application. I recommend first creating and installing the following complete, but simple,
 reference Rails application so that you can validate a working setup on your
 system, and have a reference point for making changes to your own application.
@@ -239,10 +239,10 @@ heroku toolbelt (see doc/sample.sh for more details).
 
 This example will set everything up for milia AND devise (you won't need to do devise).
 It assumes you won't use airbrake, you will use recaptcha for new account sign-ups,
-and you will use invite_member capability. Skeleton user, tenant, and member models
+and you will use invite_member capability. Skeleton user, account, and member models
 will be created. Before you run db:migrate, you can add any additional fields to the
-tenant and member models. User model really is primarily only used by devise, and so
-you shouldn't add anything to this model as it's a universal model. Member is a tenanted
+account and member models. User model really is primarily only used by devise, and so
+you shouldn't add anything to this model as it's a universal model. Member is a accounted
 model and so this is where all the information for a member should be kept.
 
 ```ruby
@@ -469,7 +469,7 @@ and add above the t.timestamps line:
       # milia member_invitable
       t.boolean    :skip_confirm_change_password, :default => false
 
-      t.references :tenant
+      t.references :account
 ```
 
 edit <i>config/initializers/devise.rb</i> 
@@ -492,50 +492,50 @@ in the same initializer file, locate and uncomment the following lines:
 
 #### migrations
 
-*ALL* models require a tenanting field, whether they are to be universal or to
-be tenanted. So make sure the following is added to each migration:
+*ALL* models require a accounting field, whether they are to be universal or to
+be accounted. So make sure the following is added to each migration:
 
 <i>db/migrate/xxxxxxx_create_modelXYZ.rb</i>
 
 ```
-  t.references :tenant
+  t.references :account
 ```
 
-Tenanted models will also require indexes for the tenant field.
+Accounted models will also require indexes for the account field.
 
 ```
-  add_index :<tablename>, :tenant_id
+  add_index :<tablename>, :account_id
 ```
 
-BUT: Do not add any <i>belongs_to  :tenant</i> statements into any of your
+BUT: Do not add any <i>belongs_to  :account</i> statements into any of your
 models. milia will do that for all. I do recommend, however, that you add
-into your <i>app/models/tenant.rb</i> file, one line per tenanted model such
+into your <i>app/models/account.rb</i> file, one line per accounted model such
 as the following (replacing <model> with your model's name):
 
 ```
   has_many  :<model>s, :dependency => destroy
 ```
 
-The reason for this is that if you wish to have a master destroy tenant action,
-it will also remove all related tenanted tables and records.
+The reason for this is that if you wish to have a master destroy account action,
+it will also remove all related accounted tables and records.
 
-Generate the tenant migration
-
-```
-  $ rails g model tenant tenant:references name:string:index
-```
-
-Generate the tenants_users join table migration
+Generate the account migration
 
 ```
-  $ rails g migration CreateTenantsUsersJoinTable tenants users
+  $ rails g model account account:references name:string:index
 ```
 
-EDIT: <i>db/migrate/20131119092046_create_tenants_users_join_table.rb</i>
+Generate the accounts_users join table migration
+
+```
+  $ rails g migration CreateAccountsUsersJoinTable accounts users
+```
+
+EDIT: <i>db/migrate/20131119092046_create_accounts_users_join_table.rb</i>
 then uncomment the first index line as follows:
 
 ```
-   t.index [:tenant_id, :user_id]
+   t.index [:account_id, :user_id]
 ```
 
 #### application controller
@@ -545,19 +545,19 @@ add the following line IMMEDIATELY AFTER line 4 protect_from_forgery
 
 
 ```
-  before_action :authenticate_tenant!   # authenticate user and sets up tenant
+  before_action :authenticate_account!   # authenticate user and sets up account
 
-  rescue_from ::Milia::Control::MaxTenantExceeded, :with => :max_tenants
-  rescue_from ::Milia::Control::InvalidTenantAccess, :with => :invalid_tenant
+  rescue_from ::Milia::Control::MaxAccountExceeded, :with => :max_accounts
+  rescue_from ::Milia::Control::InvalidAccountAccess, :with => :invalid_account
 
-# milia defines a default max_tenants, invalid_tenant exception handling
+# milia defines a default max_accounts, invalid_account exception handling
 # but you can override if you wish to handle directly
 ```
 
 ### Designate which model determines account
 
 Add the following acts_as_... to designate which model will be used as the key
-into tenants_users to find the tenant for a given user. 
+into accounts_users to find the account for a given user. 
 Only designate one model in this manner.
 
 <i>app/models/user.rb</i>
@@ -570,27 +570,27 @@ Only designate one model in this manner.
   end  # class User
 ```
 
-### Designate which model determines tenant
+### Designate which model determines account
 
 Add the following acts_as_... to designate which model will be used as the
-tenant model. It is this id field which designates the tenant for an entire 
-group of users which exist within a single tenanted domain.
+account model. It is this id field which designates the account for an entire 
+group of users which exist within a single accounted domain.
 Only designate one model in this manner.
 
-<i>app/models/tenant.rb</i>
+<i>app/models/account.rb</i>
 
 ```ruby
-  class Tenant < ActiveRecord::Base
+  class Account < ActiveRecord::Base
     
-    acts_as_universal_and_determines_tenant
+    acts_as_universal_and_determines_account
     
-  end  # class Tenant
+  end  # class Account
 ```
 
-### Clean up any generated belongs_to tenant references in all models
+### Clean up any generated belongs_to account references in all models
 
 which the generator might have generated 
-( both <i>acts_as_tenant</i> and <i>acts_as_universal</i> will specify these ).
+( both <i>acts_as_account</i> and <i>acts_as_universal</i> will specify these ).
 
 ### Designate universal models
 
@@ -600,9 +600,9 @@ Add the following acts_as_universal to *ALL* models which are to be universal.
     acts_as_universal
 ```
 
-### Designate tenanted models
+### Designate accounted models
 
-Add the following acts_as_tenant to *ALL* models which are to be tenanted.
+Add the following acts_as_account to *ALL* models which are to be accounted.
 Example for a ficticous Post model:
   
 <i>app/models/post.rb</i>
@@ -610,7 +610,7 @@ Example for a ficticous Post model:
 ```ruby
   class Post < ActiveRecord::Base
     
-    acts_as_tenant
+    acts_as_account
   
   end  # class Post
 ```
@@ -618,56 +618,56 @@ Example for a ficticous Post model:
 ### Exceptions raised
 
 ```ruby
-  Milia::Control::InvalidTenantAccess
-  Milia::Control::MaxTenantExceeded
+  Milia::Control::InvalidAccountAccess
+  Milia::Control::MaxAccountExceeded
 ```
 
-### post authenticate_tenant! callback [optional]
+### post authenticate_account! callback [optional]
 
 In some applications, you will want to set up commonly used
 variables used throughout your application, after a user and a 
-tenant have been established. This is optional and if the
+account have been established. This is optional and if the
 callback is missing, nothing will happen.
 
 <i>app/controllers/application_controller.rb</i>
 
 ```ruby
-  def callback_authenticate_tenant
+  def callback_authenticate_account
     # set_environment or whatever else you need for each valid session
   end
 ```
 
 
 
-### Tenant pre-processing hooks
+### Account pre-processing hooks
 
-#### Milia expects a tenant pre-processing & setup hook:
+#### Milia expects a account pre-processing & setup hook:
 
 ```ruby
-  Tenant.create_new_tenant(tenant_params, coupon_params)   # see sample code below
+  Account.create_new_account(account_params, coupon_params)   # see sample code below
 ```
   
-where the sign-up params are passed, the new tenant must be validated, created,
+where the sign-up params are passed, the new account must be validated, created,
 and then returned. Any other kinds of prepatory processing are permitted here,
-but should be minimal, and should not involve any tenanted models. At this point
-in the new account sign-up chain, no tenant has been set up yet (but will be
-immediately after the new tenant has been created).
+but should be minimal, and should not involve any accounted models. At this point
+in the new account sign-up chain, no account has been set up yet (but will be
+immediately after the new account has been created).
 
-<i>app/models/tenant.rb</i>
+<i>app/models/account.rb</i>
 
 ```ruby
-  def self.create_new_tenant(tenant_params, user_params, coupon_params)
+  def self.create_new_account(account_params, user_params, coupon_params)
 
-    tenant = Tenant.new(:name => tenant_params[:name])
+    account = Account.new(:name => account_params[:name])
 
     if new_signups_not_permitted?(coupon_params)
 
-      raise ::Milia::Control::MaxTenantExceeded, "Sorry, new accounts not permitted at this time" 
+      raise ::Milia::Control::MaxAccountExceeded, "Sorry, new accounts not permitted at this time" 
 
     else 
-      tenant.save    # create the tenant
+      account.save    # create the account
     end
-    return tenant
+    return account
   end
 
   # ------------------------------------------------------------------------
@@ -680,35 +680,35 @@ immediately after the new tenant has been created).
   end
 ```
 
-#### Milia expects a tenant post-processing hook:
+#### Milia expects a account post-processing hook:
 
 ```ruby
-  Tenant.tenant_signup(user,tenant,other)   # see sample code below
+  Account.account_signup(user,account,other)   # see sample code below
 ```
   
-The purpose here is to do any tenant initialization AFTER devise
-has validated and created a user. Objects for the user and tenant
+The purpose here is to do any account initialization AFTER devise
+has validated and created a user. Objects for the user and account
 are passed.  It is recommended that only minimal processing be done
 here ... for example, queueing a background task to do the actual
-work in setting things up for a new tenant.
+work in setting things up for a new account.
 
-<i>app/models/tenant.rb</i>
+<i>app/models/account.rb</i>
 
 ```ruby
 # ------------------------------------------------------------------------
-# tenant_signup -- setup a new tenant in the system
+# account_signup -- setup a new account in the system
 # CALLBACK from devise RegistrationsController (milia override)
-# AFTER user creation and current_tenant established
+# AFTER user creation and current_account established
 # args:
 #   user  -- new user  obj
-#   tenant -- new tenant obj
+#   account -- new account obj
 #   other  -- any other parameter string from initial request
 # ------------------------------------------------------------------------
-  def self.tenant_signup(user, tenant, other = nil)
-      #  StartupJob.queue_startup( tenant, user, other )
-      # any special seeding required for a new organizational tenant
+  def self.account_signup(user, account, other = nil)
+      #  StartupJob.queue_startup( account, user, other )
+      # any special seeding required for a new organizational account
 
-      Member.create_org_admin(user)  # sample if using Member as tenanted member information model
+      Member.create_org_admin(user)  # sample if using Member as accounted member information model
   end
 ```
 
@@ -755,7 +755,7 @@ taken from sample-milia-app.
         %span.description to confirm your password
 
       .group
-        = fields_for( :tenant ) do |w|
+        = fields_for( :account ) do |w|
           = w.label( :name, 'Organization', :class => "label" ) 
           = w.text_field( :name, :class => "text_field")
           %span.description unique name for your group or organization for the new account
@@ -777,48 +777,48 @@ taken from sample-milia-app.
 
 ```
 
-### Alternate use case: user belongs to multiple tenants
+### Alternate use case: user belongs to multiple accounts
 
-Your application might allow a user to belong to multiple tenants. You will need
+Your application might allow a user to belong to multiple accounts. You will need
 to provide some type of mechanism to allow the user to choose which account
-(thus tenant) they wish to access. Once chosen, in your controller, you will need
+(thus account) they wish to access. Once chosen, in your controller, you will need
 to put:
 
 <i>app/controllers/any_controller.rb</i>
   
 ```ruby
-  set_current_tenant( new_tenant_id )
+  set_current_account( new_account_id )
 ```
 
-## joins might require additional tenanting restrictions
+## joins might require additional accounting restrictions
 
 Subordinate join tables will not get the Rails default scope.
 Theoretically, the default scope on the master table alone should be sufficient
-in restricting answers to the current_tenant alone .. HOWEVER, it doesn't feel
+in restricting answers to the current_account alone .. HOWEVER, it doesn't feel
 right. 
 
 If the master table for the join is a universal table, however, you really *MUST*
 use the following workaround, otherwise the database will access data in other 
-tenanted areas even if no records are returned. This is a potential security
+accounted areas even if no records are returned. This is a potential security
 breach. Further details can be found in various discussions about the
 behavior of databases such as POSTGRES.
 
-The milia workaround is to add an additional .where( where_restrict_tenants(klass1, klass2,...))
+The milia workaround is to add an additional .where( where_restrict_accounts(klass1, klass2,...))
 for each of the subordinate models in the join.
 
-### usage of where_restrict_tenants
+### usage of where_restrict_accounts
 
 ```ruby
-    Comment.joins(stuff).where( where_restrict_tenants(Post, Author) ).all
+    Comment.joins(stuff).where( where_restrict_accounts(Post, Author) ).all
 ```
 
-## no tenant authorization required controller actions: root_path
+## no account authorization required controller actions: root_path
 
-Any controller actions, such as the root_path page, will need to skip the tenant & user authorizations.
+Any controller actions, such as the root_path page, will need to skip the account & user authorizations.
 For example in <i>app/controllers/home_controller.rb </i> place the following near the top of the controller:
 
 ```ruby
-  skip_before_action :authenticate_tenant!, :only => [ :index ]
+  skip_before_action :authenticate_account!, :only => [ :index ]
 ```
 
 ## using tokens for authentication
@@ -835,7 +835,7 @@ generic "guest" for the organization itself for accessing the organization-wide 
 The general scheme is to have a prepend_before_action authenticate_by_token! specified 
 only for those actions allowed. This action determines the "user" required to proceed
 with the action, signs in that user via devise, then falls through to the normal
-before_action authenticate_tenant! action which establishes the current_tenant.
+before_action authenticate_account! action which establishes the current_account.
 
 Below are some examples of this (typically the token is passed as the id parameter):
 
@@ -843,7 +843,7 @@ Below are some examples of this (typically the token is passed as the id paramet
 ```ruby
 # ------------------------------------------------------------------------------
 # NOTE: be sure to use prepend_before_action authenticate_by_token!
-# so that this will occur BEFORE authenticate_tenant!
+# so that this will occur BEFORE authenticate_account!
 # ------------------------------------------------------------------------------
 # Notice we are passing store false, so the user is not
 # actually stored in the session and a token is needed for every request. 
@@ -860,7 +860,7 @@ Below are some examples of this (typically the token is passed as the id paramet
         # create a special session after authorizing a user
       reset_session
       sign_in(user, store: false)  # devise's way to signin the user
-      # now continue with tenant authorization & set up
+      # now continue with account authorization & set up
       true  # ok to continue  processing
        
     else
@@ -906,35 +906,35 @@ Below are some examples of this (typically the token is passed as the id paramet
 ## console
 
 Note that even when running the console, ($ rails console) it will be run in 
-multi-tenanting mode. You will need to establish a current_user and
-setup the current_tenant, otherwise most Model DB accesses will fail.
+multi-accounting mode. You will need to establish a current_user and
+setup the current_account, otherwise most Model DB accesses will fail.
 
 For the author's own application, I have set up a small ruby file which I 
 load when I start the console. This does the following:
 
 ```ruby
-    def change_tenant(my_id,my_tenant_id)
+    def change_account(my_id,my_account_id)
       @me = User.find( my_id )
-      @w  = Tenant.find( my_tenant_id )
-      Tenant.set_current_tenant @w
+      @w  = Account.find( my_account_id )
+      Account.set_current_account @w
     end
 
-change_tenant(1,1)   # or whatever is an appropriate starting user, tenant
+change_account(1,1)   # or whatever is an appropriate starting user, account
 ```
 
-## Whitelisting additional parameters for tenant/user/coupon
+## Whitelisting additional parameters for account/user/coupon
 
-During the Tenant.create_new_tenant part of the sign-up process, three
+During the Account.create_new_account part of the sign-up process, three
 sets of whitelisted parameters are passed to the method: The parameters
-for tenant, user, and coupon. But some applications might require more or
+for account, user, and coupon. But some applications might require more or
 other parameters than the ones expected by milia. Sometimes the application
 might need to add some parameters of its own, such a EULA version number,
-additions to an activation message, or a unique name for the tenant itself.
+additions to an activation message, or a unique name for the account itself.
 
 Milia has a mechanism to add additional parameters to be whitelisted. 
 In <i>config/initializers/milia.rb</i> you can add a list of symbols for
 the additional parameters to each of a config setting for any of the
-three (tenant, user, or coupon). The example below shows how.
+three (account, user, or coupon). The example below shows how.
 
 ```ruby
   # whitelist user params list
@@ -943,11 +943,11 @@ three (tenant, user, or coupon). The example below shows how.
   # example: [:name]
   config.whitelist_user_params = [:eula_id, :message]
 
-  # whitelist tenant params list
+  # whitelist account params list
   # allows an app to expand the permitted attribute list
   # specify each attribute as a symbol
   # example: [:name]
-  config.whitelist_tenant_params = [:company, :cname]
+  config.whitelist_account_params = [:company, :cname]
 
   # whitelist coupon params list
   # allows an app to expand the permitted attribute list
@@ -960,17 +960,17 @@ three (tenant, user, or coupon). The example below shows how.
 ## inviting additional user/members
 
 To keep this discussion simple, we'll give the example of using class Member < Activerecord::Base
-which will be a tenanted table for keeping information regarding all the members in a given
+which will be a accounted table for keeping information regarding all the members in a given
 organization. The name "Member" is not a requirement of milia. But this is how you would set up an
-invite_member capability. It is in this event, that you will require the line in the Tenant
-post-processing hook <i>tenant_signup</i> <pre>Member.create_org_admin(user)</pre> which also
+invite_member capability. It is in this event, that you will require the line in the Account
+post-processing hook <i>account_signup</i> <pre>Member.create_org_admin(user)</pre> which also
 creates the Member record for the initial admin on the account.
 
 ```
-  $ rails g resource member tenant:references user:references first_name:string last_name:string favorite_color:string
+  $ rails g resource member account:references user:references first_name:string last_name:string favorite_color:string
 ```
 
-ADD to <i>app/models/tenant.rb</i>
+ADD to <i>app/models/account.rb</i>
 ```ruby
   has_many :members, dependent: :destroy
 ```
@@ -982,10 +982,10 @@ ADD to <i>app/models/user.rb</i>
 
 
 EDIT <i>app/models/member.rb</i>
-REMOVE belongs_to :tenant
+REMOVE belongs_to :account
 ADD
 ```ruby
-  acts_as_tenant
+  acts_as_account
 
   DEFAULT_ADMIN = {
     first_name: "Admin",
@@ -1054,7 +1054,7 @@ CREATE a form for inputting new member information for an invite
           Create user and invite
 ```
 
-## authorized tenanted user landing page:
+## authorized accounted user landing page:
 
 You will need a members-only landing page for after someone successfully signs into your app.
 Here is what I typically do:
@@ -1091,37 +1091,37 @@ Here is what I typically do:
 ### From controller-levels:
 
 ```ruby
-  set_current_tenant( tenant_id )
-  #  raise InvalidTenantAccess unless tenant_id is one of the current_user valid tenants
+  set_current_account( account_id )
+  #  raise InvalidAccountAccess unless account_id is one of the current_user valid accounts
 ```
 
-set_current_tenant can be used to change the current_tenanted (for example, if a member
-can belong to multiple tenants and wants to switch between them). See example else in this
+set_current_account can be used to change the current_accounted (for example, if a member
+can belong to multiple accounts and wants to switch between them). See example else in this
 README. NOTE: you will normally NEVER use this. Milia does this automatically during
-authorize_tenant! so you never should at the beginning of a session.
+authorize_account! so you never should at the beginning of a session.
 
 ### From model-levels:
 ```ruby
-  Tenant.current_tenant -- returns tenant object for the current tenant; nil if none
+  Account.current_account -- returns account object for the current account; nil if none
 
-  Tenant.current_tenant_id -- returns tenant_id for the current tenant; nil if none
+  Account.current_account_id -- returns account_id for the current account; nil if none
 ```
 
-If you need to gain access to tenant object itself (say to get the name of the tenant),
+If you need to gain access to account object itself (say to get the name of the account),
 then use these accessor methods.
 
 ### From background, rake, or console-level (CAUTION):
 
 From background jobs (only at the start of the task); 
-tenant can either be a tenant object or an integer tenant_id; anything else will raise
-exception.  set_current_tenant -- is model-level ability to set the current tenant
+account can either be a account object or an integer account_id; anything else will raise
+exception.  set_current_account -- is model-level ability to set the current account
 NOTE: *USE WITH CAUTION* normally this should *NEVER* be done from
 the models ... it is only useful and safe WHEN performed at the start
 of a background job (DelayedJob#perform) or at start of rails console, or a rake task.
 
 ```ruby
-  Tenant.set_current_tenant( tenant )
-    raise ArgumentError, "invalid tenant object or id"
+  Account.set_current_account( account )
+    raise ArgumentError, "invalid account object or id"
 ```
 
 
@@ -1147,21 +1147,21 @@ For some reason, rake test won't work and yields errors.
 
 ## Cautions
 
-* Milia designates a default_scope for all models (both universal and tenanted). From Rails 3.2 onwards, the last designated default scope overrides any prior scopes and will invalidate multi-tenanting; so *DO NOT USE default_scope*
-* Milia uses Thread.current[:tenant_id] to hold the current tenant for the existing Action request in the application.
-* SQL statements executed outside the context of ActiveRecord pose a potential danger; the current milia implementation does not extend to the DB connection level and so cannot enforce tenanting at this point.
-* The tenant_id of a universal model will always be forced to nil.
-* The tenant_id of a tenanted model will be set to the current_tenant of the current_user upon creation.
+* Milia designates a default_scope for all models (both universal and accounted). From Rails 3.2 onwards, the last designated default scope overrides any prior scopes and will invalidate multi-accounting; so *DO NOT USE default_scope*
+* Milia uses Thread.current[:account_id] to hold the current account for the existing Action request in the application.
+* SQL statements executed outside the context of ActiveRecord pose a potential danger; the current milia implementation does not extend to the DB connection level and so cannot enforce accounting at this point.
+* The account_id of a universal model will always be forced to nil.
+* The account_id of a accounted model will be set to the current_account of the current_user upon creation.
 * HABTM (has_and_belongs_to_many) associations don't have models; they shouldn't have id fields
-  (setup as below) nor any field other than the joined references; they don't have a tenant_id field;
-  rails will invoke the default_scope of the appropriate joined table which does have a tenant_id field.
+  (setup as below) nor any field other than the joined references; they don't have a account_id field;
+  rails will invoke the default_scope of the appropriate joined table which does have a account_id field.
 
 
 ## Further documentation
 
-* Check out the three-part blog discussion of _Multi-tenanting Ruby on Rails Applications on Heroku_
-at: http://myrailscraft.blogspot.com/2013/05/multi-tenanting-ruby-on-rails.html
-* See the Milia tutorial at: http://myrailscraft.blogspot.com/2013/05/multi-tenanting-ruby-on-rails_3982.html
+* Check out the three-part blog discussion of _Multi-accounting Ruby on Rails Applications on Heroku_
+at: http://myrailscraft.blogspot.com/2013/05/multi-accounting-ruby-on-rails.html
+* See the Milia tutorial at: http://myrailscraft.blogspot.com/2013/05/multi-accounting-ruby-on-rails_3982.html
 * see code & setup sample in test/railsapp, which is also used to run the tests.
 * see milia wiki on github for a CHANGE HISTORY page.
 
