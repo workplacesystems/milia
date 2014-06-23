@@ -33,7 +33,6 @@ post_berry_1_1_c:
   member: quentin_1
   zine: zine_1_c
 
-# ------------------------------------
 
 post_apple_2_1_a:
   account_id: 2
@@ -60,7 +59,6 @@ post_apricot_2_1_b:
   member: jermaine_2
   zine: zine_2_b
 
-# ------------------------------------
 
 post_apple_3_1_a:
   account_id: 3

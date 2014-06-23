@@ -7,9 +7,6 @@ class Account < ActiveRecord::Base
   has_many :teams, dependent: :destroy
   has_many :team_assets, dependent: :destroy
 
-  # ------------------------------------------------------------------------
-  # ------------------------------------------------------------------------
-  # ------------------------------------------------------------------------
     def self.create_new_account(account_params, user_params, coupon_params)
 
       account = Account.new(:name => account_params[:name])
@@ -24,16 +21,13 @@ class Account < ActiveRecord::Base
       return account
     end
 
-  # ------------------------------------------------------------------------
   # new_signups_not_permitted? -- returns true if no further signups allowed
   # args: params from user input; might contain a special 'coupon' code
   #       used to determine whether or not to allow another signup
-  # ------------------------------------------------------------------------
   def self.new_signups_not_permitted?(params)
     return false
   end
 
-  # ------------------------------------------------------------------------
   # account_signup -- setup a new account in the system
   # CALLBACK from devise RegistrationsController (milia override)
   # AFTER user creation and current_account established
@@ -41,7 +35,6 @@ class Account < ActiveRecord::Base
   #   user  -- new user  obj
   #   account -- new account obj
   #   other  -- any other parameter string from initial request
-  # ------------------------------------------------------------------------
     def self.account_signup(user, account, other = nil)
       #  StartupJob.queue_startup( account, user, other )
       # any special seeding required for a new organizational account

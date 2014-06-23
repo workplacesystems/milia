@@ -9,10 +9,8 @@ module Milia
 # #############################################################################
     module ClassMethods
 
-# ------------------------------------------------------------------------
 # acts_as_account -- makes a accounted model
 # Forces all references to be limited to current_account rows
-# ------------------------------------------------------------------------
       def acts_as_account()
         belongs_to  :account
         validates_presence_of :account_id
@@ -48,10 +46,8 @@ module Milia
 
       end
 
-# ------------------------------------------------------------------------
 # acts_as_universal -- makes a univeral (non-accounted) model
 # Forces all reference to the universal account (nil)
-# ------------------------------------------------------------------------
       def acts_as_universal()
         belongs_to  :account
 
@@ -79,11 +75,9 @@ module Milia
 
       end
       
-# ------------------------------------------------------------------------
 # acts_as_universal_and_determines_account_reference
 # All the characteristics of acts_as_universal AND also does the magic
 # of binding a user to a account
-# ------------------------------------------------------------------------
       def acts_as_universal_and_determines_user()
         include ::Milia::InviteMember
         has_and_belongs_to_many :accounts
@@ -118,8 +112,6 @@ module Milia
         
       end  # acts_as
 
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
   def acts_as_universal_and_determines_account()
     has_and_belongs_to_many :users
 
@@ -131,10 +123,8 @@ module Milia
     end # before_destroy do
   end
 
-# ------------------------------------------------------------------------
 # current_account -- returns account obj for current account
   # return nil if no current account defined
-# ------------------------------------------------------------------------
   def current_account()
     begin
       account = (
@@ -150,19 +140,15 @@ module Milia
     end   
   end
     
-# ------------------------------------------------------------------------
 # current_account_id -- returns account_id for current account
-# ------------------------------------------------------------------------
   def current_account_id()
     return Thread.current[:account_id]
   end
   
-# ------------------------------------------------------------------------
 # set_current_account -- model-level ability to set the current account
 # NOTE: *USE WITH CAUTION* normally this should *NEVER* be done from
 # the models ... it's only useful and safe WHEN performed at the start
 # of a background job (DelayedJob#perform)
-# ------------------------------------------------------------------------
   def set_current_account( account )
       # able to handle account obj or account_id
     case account
@@ -177,29 +163,19 @@ module Milia
     logger.debug("MILIA >>>>> [Account#change_account] new: #{account_id}\told:#{old_id}") unless logger.nil?
 
   end
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
  
-# ------------------------------------------------------------------------
 # where_restrict_account -- gens account restrictive where clause for each klass
 # NOTE: subordinate join tables will not get the default scope by Rails
 # theoretically, the default scope on the master table alone should be sufficient
 # in restricting answers to the current_account alone .. HOWEVER, it doesn't feel
 # right. adding an additional .where( where_restrict_accounts(klass1, klass2,...))
 # for each of the subordinate models in the join seems like a nice safety issue.
-# ------------------------------------------------------------------------
   def where_restrict_account(*args)
     args.map{|klass| "#{klass.table_name}.account_id = #{Thread.current[:account_id]}"}.join(" AND ")
   end
   
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
 
     end  # module ClassMethods
 # #############################################################################

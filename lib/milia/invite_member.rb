@@ -16,9 +16,7 @@ module Milia
 # #############################################################################
 # #############################################################################
 
-# ------------------------------------------------------------------------
 # new function to set the password without knowing the current password 
-# ------------------------------------------------------------------------
   def attempt_set_password(params)
     p = {}
     p[:password] = params[:password]
@@ -26,29 +24,21 @@ module Milia
     update_attributes(p)
   end
 
-# ------------------------------------------------------------------------
   # new function to return whether a password has been set
-# ------------------------------------------------------------------------
   def has_no_password?
     self.encrypted_password.blank?
   end
   
-# ------------------------------------------------------------------------
   # new function to provide access to protected method unless_confirmed
-# ------------------------------------------------------------------------
   def only_if_unconfirmed
     pending_any_confirmation {yield}
   end
 
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------  
 # save_and_invite_member -- saves the new user record thus inviting member
     # via devise
     # if password missing; gens a password
     # ensures email exists and that email is unique and not already in system
-# ------------------------------------------------------------------------  
     def save_and_invite_member(  )
       if (
           self.email.blank?  ||
@@ -64,10 +54,8 @@ module Milia
       return status
     end
 
-# ------------------------------------------------------------------------  
 # check_or_set_password -- if password missing, generates a password
 # ASSUMES: Milia.use_invite_member
-# ------------------------------------------------------------------------  
   def check_or_set_password( )
 
     if self.password.blank?

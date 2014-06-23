@@ -10,7 +10,6 @@ class AccountTest < ActiveSupport::TestCase
 
   context "a account" do
 
-# ------------------------------------------------------------------------
     setup do
       @account =accounts( :account_1 )
       Account.set_current_account( @account.id )
@@ -18,9 +17,7 @@ class AccountTest < ActiveSupport::TestCase
 
 # #############################################################################
 # #############################################################################
-# ------------------------------------------------------------------------
 # validate multi-accounting structure
-# ------------------------------------------------------------------------
     should have_db_column(:account_id)
     should have_db_column(:name)
     should have_many( :posts )
@@ -30,9 +27,7 @@ class AccountTest < ActiveSupport::TestCase
     should have_many( :members )
     should have_and_belong_to_many( :users )
 
-# ------------------------------------------------------------------------
 # validate account creation callbacks, validators
-# ------------------------------------------------------------------------
     should 'have a new_signups_not_permitted' do
       assert Account.respond_to? :new_signups_not_permitted?
       assert !Account.new_signups_not_permitted?( {} )

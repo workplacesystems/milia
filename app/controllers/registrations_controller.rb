@@ -4,15 +4,11 @@ module Milia
 
   skip_before_action :authenticate_account!, :only => [:new, :create, :cancel]
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 # TODO: options if non-standard path for new signups view
-# ------------------------------------------------------------------------------
 # create -- intercept the POST create action upon new sign-up
 # new account account is vetted, then created, then proceed with devise create user
 # CALLBACK: Account.create_new_account  -- prior to completing user account
 # CALLBACK: Account.account_signup      -- after completing user account
-# ------------------------------------------------------------------------------
 def create
     # have a working copy of the params in case Account callbacks
     # make any changes
@@ -65,32 +61,22 @@ def create
 
 end   # def create
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
   protected
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
   def configure_permitted_parameters
     devise_parameter_sanitizer.for(:sign_up) + ::Milia.whitelist_user_params
   end
  
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
   def sign_up_params_account()
     params.require(:account).permit( ::Milia.whitelist_account_params )
   end
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
   def sign_up_params_user()
     params.require(:user).permit( ::Milia.whitelist_user_params )
   end
 
-# ------------------------------------------------------------------------------
 # sign_up_params_coupon -- permit coupon parameter if used; else params
-# ------------------------------------------------------------------------------
   def sign_up_params_coupon()
     ( ::Milia.use_coupon ? 
       params.require(:coupon).permit( ::Milia.whitelist_coupon_params )  :
@@ -98,17 +84,13 @@ end   # def create
     )
   end
 
-# ------------------------------------------------------------------------------
 # sign_out_session! -- force the devise session signout
-# ------------------------------------------------------------------------------
   def sign_out_session!()
     Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name) if user_signed_in?
   end
 
-# ------------------------------------------------------------------------------
 # devise_create -- duplicate of Devise::RegistrationsController
     # same as in devise gem EXCEPT need to prep signup form variables
-# ------------------------------------------------------------------------------
   def devise_create( user_params )
 
     build_resource(user_params)
@@ -139,21 +121,15 @@ end   # def create
     end
   end
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
   def after_sign_up_path_for(resource)
     headers['refresh'] = "0;url=#{root_path}"
     root_path
   end
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
   def after_inactive_sign_up_path_for(resource)
     headers['refresh'] = "0;url=#{root_path}"
     root_path
   end
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
   def log_action( action, resource=nil )
     err_msg = ( resource.nil? ? '' : resource.errors.full_messages.uniq.join(", ") )
@@ -162,11 +138,7 @@ end   # def create
     ) unless logger.nil?
   end
  
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
  
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
   end   # class Registrations
 

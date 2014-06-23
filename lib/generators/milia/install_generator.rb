@@ -15,24 +15,18 @@ module Milia
       class_option :skip_env_email_setup, :type => :boolean, :default => false, :desc => 'Use this option to skip adding smtp email info to config/environments/*'
       class_option :org_email, :type => :string, :default => "my-email@my-domain.com", :desc => 'define the organizational email from address'
        
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   def check_requirements()
     gem_find_or_fail( %w(devise) )
   end
 
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   def initialize_template_variables()
     @skip_recaptcha = options.skip_recaptcha
     @skip_invite_member = options.skip_invite_member
     @use_airbrake = options.use_airbrake
   end
 
-# -------------------------------------------------------------
 # the run('bundle install') didn't work; don't know why
   # replaced it with the "run_bundle" method below
-# -------------------------------------------------------------
       def setup_initial_stuff
 
         template 'initializer.rb', 'config/initializers/milia.rb'
@@ -49,8 +43,6 @@ module Milia
          run_bundle
       end
 
-# -------------------------------------------------------------
-# -------------------------------------------------------------
       def setup_devise
         generate "devise:install"
         generate "devise", "user"
@@ -67,8 +59,6 @@ module Milia
 
       end
 
-# -------------------------------------------------------------
-# -------------------------------------------------------------
      def setup_milia
 
        unless false    # future skip block?? 
@@ -145,8 +135,6 @@ module Milia
        end  # skip any member expansion
      end
 
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   def setup_environments
 
     unless options.skip_env_email_setup
@@ -171,24 +159,17 @@ module Milia
   end
 
 
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   def wrapup()
     alert_color = :red
-    say("-------------------------------------------------------------------------", alert_color)
     say("-   milia installation complete", alert_color)
     say("-   please edit your email, domain, password in config/environments/*", alert_color)
     say("-   please edit devise config/initializers/devise.rb", alert_color)
     say("-   please run migrations: $ rake db:migrate", alert_color)
-    say("-------------------------------------------------------------------------", alert_color)
   end
 
-# -------------------------------------------------------------
 
 private
 
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   def find_or_fail( filename )
     user_file = Dir.glob(filename).first
     if user_file.blank? 
@@ -198,8 +179,6 @@ private
     return user_file
   end
   
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   
 # *************************************************************
 # ******  SNIPPET SECTION  ************************************
@@ -283,16 +262,13 @@ RUBY6
       return account
     end
 
-  # ------------------------------------------------------------------------
   # new_signups_not_permitted? -- returns true if no further signups allowed
   # args: params from user input; might contain a special 'coupon' code
   #       used to determine whether or not to allow another signup
-  # ------------------------------------------------------------------------
   def self.new_signups_not_permitted?(params)
     return false
   end
 
-  # ------------------------------------------------------------------------
   # account_signup -- setup a new account in the system
   # CALLBACK from devise RegistrationsController (milia override)
   # AFTER user creation and current_account established
@@ -300,7 +276,6 @@ RUBY6
   #   user  -- new user  obj
   #   account -- new account obj
   #   other  -- any other parameter string from initial request
-  # ------------------------------------------------------------------------
     def self.account_signup(user, account, other = nil)
       #  StartupJob.queue_startup( account, user, other )
       # any special seeding required for a new organizational account
@@ -492,8 +467,6 @@ protected
         bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
       end
 
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   def gem_find_or_fail( list )
     need_fail = false
     alert_color = :red
@@ -510,34 +483,26 @@ protected
     end # each constant to be checked
 
     if need_fail
-      say("-------------------------------------------------------------------------", alert_color)
       say("-   add required gems to Gemfile; then run bundle install", alert_color)
       say("-   then retry rails g milia:install", alert_color)
-      say("-------------------------------------------------------------------------", alert_color)
       raise Thor::Error, "************  terminating generator due to missing requirements!  *************" 
     end  # need to fail
     
   end
  
-# -------------------------------------------------------------
-# -------------------------------------------------------------
   def file_find_or_fail( filename )
     user_file = Dir.glob(filename).first
     if user_file.blank? 
       alert_color = :red
-      say("-------------------------------------------------------------------------", alert_color)
       say_status("error", "file: '#{filename}' not found", alert_color)
       say("-   first run  $ rails g milia:install", alert_color)
       say("-   then retry $ rails g web_app_theme:milia", alert_color)
-      say("-------------------------------------------------------------------------", alert_color)
  
       raise Thor::Error, "************  terminating generator due to file error!  *************" 
     end
     return user_file
   end
    
-# -------------------------------------------------------------
-# -------------------------------------------------------------
 
     end  # class InstallGen
 

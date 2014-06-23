@@ -7,15 +7,11 @@ class ActiveSupport::TestCase
 
   ActiveRecord::Migration.check_pending!
 
-# -----------------------------------------------------------------------------
 # any class-level stuff for special handling
-# -----------------------------------------------------------------------------
   class << self
     
   end  #  anon class
     
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests
@@ -24,8 +20,6 @@ class ActiveSupport::TestCase
   
   # Add more helper methods to be used by all tests here...
 
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
 
 end   #  class ActiveSupport::TestCase
 

@@ -10,15 +10,11 @@ class UserTest < ActiveSupport::TestCase
 
   context "a user" do
     
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
     setup do
       Account.set_current_account( accounts( :account_1 ).id )
       @user = users(:quentin)
     end
 
-# ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
     should have_one( :member )
     should have_many( :accounted_members )
     should have_and_belong_to_many( :accounts )
