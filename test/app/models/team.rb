@@ -1,5 +1,5 @@
 class Team < ActiveRecord::Base
-  acts_as_tenant
+  acts_as_account
   
   has_many :team_assets
   has_many :team_members, :through => :team_assets, :source => 'member'

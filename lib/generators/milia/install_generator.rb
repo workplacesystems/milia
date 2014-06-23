@@ -77,8 +77,8 @@ module Milia
 
          generate "controller", "home index"
          generate "active_record:session_migration"
-         generate "model", "tenant tenant:references name:string:index"
-         generate "migration", "CreateTenantsUsersJoinTable tenants users"
+         generate "model", "account account:references name:string:index"
+         generate "migration", "CreateAccountsUsersJoinTable accounts users"
 
          inject_into_file "app/controllers/application_controller.rb",
            after: "protect_from_forgery with: :exception\n" do 
@@ -89,8 +89,8 @@ module Milia
             snippet_home_ctlr_header
          end
 
-         join_file = find_or_fail("db/migrate/[0-9]*_create_tenants_users_join_table.rb")
-         uncomment_lines join_file, ":tenant_id, :user_id" 
+         join_file = find_or_fail("db/migrate/[0-9]*_create_accounts_users_join_table.rb")
+         uncomment_lines join_file, ":account_id, :user_id" 
 
          gsub_file "config/routes.rb", "devise_for :users"  do 
            snippet_routes_devise
@@ -101,10 +101,10 @@ module Milia
            snippet_model_user_determines_account
          end
 
-         gsub_file "app/models/tenant.rb", /belongs_to \:tenant/, ' '
+         gsub_file "app/models/account.rb", /belongs_to \:account/, ' '
 
-         inject_into_class "app/models/tenant.rb", Tenant do 
-            snippet_model_tenant_determines_tenant
+         inject_into_class "app/models/account.rb", Account do 
+            snippet_model_account_determines_account
          end
 
        end  # skip block?
@@ -114,21 +114,21 @@ module Milia
 
        unless options.skip_invite_member
 
-         generate "resource", "member tenant:references user:references first_name:string last_name:string"
+         generate "resource", "member account:references user:references first_name:string last_name:string"
 
-         inject_into_file "app/models/tenant.rb",
-           after: "acts_as_universal_and_determines_tenant\n" do 
-              snippet_add_assoc_to_tenant
+         inject_into_file "app/models/account.rb",
+           after: "acts_as_universal_and_determines_account\n" do 
+              snippet_add_assoc_to_account
          end
 
-         uncomment_lines "app/models/tenant.rb", "create_org_admin"
+         uncomment_lines "app/models/account.rb", "create_org_admin"
 
          inject_into_file "app/models/user.rb",
            after: "acts_as_universal_and_determines_account\n" do 
              snippet_add_member_assoc_to_user
          end
 
-         gsub_file "app/models/member.rb", /belongs_to \:tenant/, ' '
+         gsub_file "app/models/member.rb", /belongs_to \:account/, ' '
 
          inject_into_file "app/models/member.rb",
            after: "belongs_to :user\n" do 
@@ -209,7 +209,7 @@ private
     
       # milia member_invitable
       t.boolean    :skip_confirm_change_password, :default => false
-      t.references :tenant
+      t.references :account
     RUBY1
  end
 
@@ -221,19 +221,19 @@ private
 
  def snippet_app_ctlr_header
     <<-'RUBY3'
-  before_action :authenticate_tenant!
+  before_action :authenticate_account!
   
-     ##    milia defines a default max_tenants, invalid_tenant exception handling
+     ##    milia defines a default max_accounts, invalid_account exception handling
      ##    but you can override these if you wish to handle directly
-  rescue_from ::Milia::Control::MaxTenantExceeded, :with => :max_tenants
-  rescue_from ::Milia::Control::InvalidTenantAccess, :with => :invalid_tenant
+  rescue_from ::Milia::Control::MaxAccountExceeded, :with => :max_accounts
+  rescue_from ::Milia::Control::InvalidAccountAccess, :with => :invalid_account
 
     RUBY3
  end
 
  def snippet_home_ctlr_header
    <<-'RUBY4'
-  skip_before_action :authenticate_tenant!, :only => [ :index ]
+  skip_before_action :authenticate_account!, :only => [ :index ]
 
    RUBY4
  end
@@ -264,23 +264,23 @@ RUBY5
 RUBY6
   end
 
-  def snippet_model_tenant_determines_tenant
+  def snippet_model_account_determines_account
     <<-'RUBY7'
 
-   acts_as_universal_and_determines_tenant
+   acts_as_universal_and_determines_account
 
-    def self.create_new_tenant(tenant_params, user_params, coupon_params)
+    def self.create_new_account(account_params, user_params, coupon_params)
 
-      tenant = Tenant.new(:name => tenant_params[:name])
+      account = Account.new(:name => account_params[:name])
 
       if new_signups_not_permitted?(coupon_params)
 
-        raise ::Milia::Control::MaxTenantExceeded, "Sorry, new accounts not permitted at this time" 
+        raise ::Milia::Control::MaxAccountExceeded, "Sorry, new accounts not permitted at this time" 
 
       else 
-        tenant.save    # create the tenant
+        account.save    # create the account
       end
-      return tenant
+      return account
     end
 
   # ------------------------------------------------------------------------
@@ -293,17 +293,17 @@ RUBY6
   end
 
   # ------------------------------------------------------------------------
-  # tenant_signup -- setup a new tenant in the system
+  # account_signup -- setup a new account in the system
   # CALLBACK from devise RegistrationsController (milia override)
-  # AFTER user creation and current_tenant established
+  # AFTER user creation and current_account established
   # args:
   #   user  -- new user  obj
-  #   tenant -- new tenant obj
+  #   account -- new account obj
   #   other  -- any other parameter string from initial request
   # ------------------------------------------------------------------------
-    def self.tenant_signup(user, tenant, other = nil)
-      #  StartupJob.queue_startup( tenant, user, other )
-      # any special seeding required for a new organizational tenant
+    def self.account_signup(user, account, other = nil)
+      #  StartupJob.queue_startup( account, user, other )
+      # any special seeding required for a new organizational account
       #
       # Member.create_org_admin(user)
       #
@@ -321,7 +321,7 @@ RUBY6
 
   def snippet_fill_out_member
     <<-'RUBY11'
-  acts_as_tenant
+  acts_as_account
 
   DEFAULT_ADMIN = {
     first_name: "Admin",
@@ -387,7 +387,7 @@ RUBY6
   end
 
 
-  def snippet_add_assoc_to_tenant
+  def snippet_add_assoc_to_account
     <<-'RUBY13'
   has_many :members, dependent: :destroy
     RUBY13

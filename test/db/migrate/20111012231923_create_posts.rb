@@ -1,7 +1,7 @@
 class CreatePosts < ActiveRecord::Migration
   def change
     create_table :posts do |t|
-      t.references :tenant, index: true
+      t.references :account, index: true
       t.references :member, index: true
       t.references :zine, index: true
       t.string :content

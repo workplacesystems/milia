@@ -4,7 +4,7 @@ class HomeControllerTest < ActionController::TestCase
     
   context 'home ctlr' do
     setup do
-      Tenant.set_current_tenant( tenants( :tenant_1 ).id )
+      Account.set_current_account( accounts( :account_1 ).id )
     end
 
   should "get index" do
@@ -26,29 +26,29 @@ class HomeControllerTest < ActionController::TestCase
     assert_response :success
   end  # should do
 
-  should 'reset tenant' do
-    assert Tenant.current_tenant_id
-    @controller.__milia_reset_tenant!   # invoke the private method
-    assert_nil Tenant.current_tenant_id
+  should 'reset account' do
+    assert Account.current_account_id
+    @controller.__milia_reset_account!   # invoke the private method
+    assert_nil Account.current_account_id
 
   end  # should do
 
-  should 'change tenant' do
-    assert_equal 1,Tenant.current_tenant_id
-    @controller.__milia_change_tenant!(2)   # invoke the private method
-    assert_equal 2,Tenant.current_tenant_id
+  should 'change account' do
+    assert_equal 1,Account.current_account_id
+    @controller.__milia_change_account!(2)   # invoke the private method
+    assert_equal 2,Account.current_account_id
   end  # should do
 
-  should 'trace tenanting' do
+  should 'trace accounting' do
     ::Milia.trace_on = true
-    @controller.trace_tenanting( "wild blue" )
+    @controller.trace_accounting( "wild blue" )
     ::Milia.trace_on = false
-    @controller.trace_tenanting( "duck walk" )
+    @controller.trace_accounting( "duck walk" )
   end  # should do
 
-  should 'initiate tenant' do
-    @controller.initiate_tenant( tenants(:tenant_2) )
-    assert_equal 2,Tenant.current_tenant_id
+  should 'initiate account' do
+    @controller.initiate_account( accounts(:account_2) )
+    assert_equal 2,Account.current_account_id
   end  # should do
 
   should 'redirect back' do
@@ -69,60 +69,60 @@ class HomeControllerTest < ActionController::TestCase
   end  # should do
 
   should 'prep signup view' do
-    assert_nil  @controller.instance_eval( "@tenant" )
+    assert_nil  @controller.instance_eval( "@account" )
     @controller.prep_signup_view( 
         { name: 'Mangoland' }, 
         {email: 'billybob@bob.com', password: 'monkeymocha', password_confirmation: 'monkeymocha'} 
     )
-    assert_equal 'Mangoland', @controller.instance_eval( "@tenant" ).name
+    assert_equal 'Mangoland', @controller.instance_eval( "@account" ).name
   end  # should do
 
-  should 'handle max_tenants exception' do
+  should 'handle max_accounts exception' do
        # alter the code to invoke redirect_back
     @controller.class.module_eval(
       %q{
         def index()
-          max_tenants
+          max_accounts
         end
       }
     )
 
        # now test it
-    get :index, { user: { email: 'billybob@bob.com' }, tenant: {name: 'Mangoland'} }
+    get :index, { user: { email: 'billybob@bob.com' }, account: {name: 'Mangoland'} }
     assert_response :redirect
     assert_redirected_to  root_url()
 
   end  # should do
 
 
-  should 'set current tenant - user not signed in' do
-    assert  @controller.set_current_tenant( 2 )
-    assert_nil  Tenant.current_tenant_id
+  should 'set current account - user not signed in' do
+    assert  @controller.set_current_account( 2 )
+    assert_nil  Account.current_account_id
   end  # should do
 
 
-  should 'set current tenant - user signed in; tid not nil; valid for user' do
+  should 'set current account - user signed in; tid not nil; valid for user' do
     sign_in( users( :quentin ) )
-    assert  @controller.set_current_tenant( 2 )
-    assert_equal  2,Tenant.current_tenant_id
+    assert  @controller.set_current_account( 2 )
+    assert_equal  2,Account.current_account_id
   end  # should do
 
-  should 'set current tenant - user signed in; tid not nil; invalid for user' do
+  should 'set current account - user signed in; tid not nil; invalid for user' do
     sign_in( users( :quentin ) )
-    assert_raise(Milia::Control::InvalidTenantAccess){
-      @controller.set_current_tenant( 3 )
+    assert_raise(Milia::Control::InvalidAccountAccess){
+      @controller.set_current_account( 3 )
     }
-    assert_equal  1,Tenant.current_tenant_id   # should be unchanged
+    assert_equal  1,Account.current_account_id   # should be unchanged
   end  # should do
 
 
-  should 'authenticate tenant - 1' do
+  should 'authenticate account - 1' do
 
-    @controller.set_current_tenant( )
+    @controller.set_current_account( )
     sign_in( users( :quentin ) )
-    @controller.authenticate_tenant!
+    @controller.authenticate_account!
     assert_response :success
-    assert_equal  1,Tenant.current_tenant_id
+    assert_equal  1,Account.current_account_id
 
   end  # should do
 

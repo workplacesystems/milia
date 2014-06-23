@@ -5,14 +5,14 @@ class ZineTest < ActiveSupport::TestCase
   context "a zine" do
     
     setup do
-      Tenant.set_current_tenant( tenants( :tenant_2 ).id )
+      Account.set_current_account( accounts( :account_2 ).id )
       @zine = Zine.first
     end
 
-# validate multi-tenanting structure
-    should have_db_column(:tenant_id)
-    should "match the current tenant" do
-      assert_equal  @zine.tenant_id, Thread.current[:tenant_id]
+# validate multi-accounting structure
+    should have_db_column(:account_id)
+    should "match the current account" do
+      assert_equal  @zine.account_id, Thread.current[:account_id]
     end
 
 # validate the model
@@ -29,8 +29,8 @@ class ZineTest < ActiveSupport::TestCase
       assert_equal 3, zines( :zine_2_a ).posts.count
     end  #should do
 
-    should 'match a zine with tenant' do
-      assert_equal  2,zines( :zine_2_a ).tenant_id
+    should 'match a zine with account' do
+      assert_equal  2,zines( :zine_2_a ).account_id
     end  # should do
   
 

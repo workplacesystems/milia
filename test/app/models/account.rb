@@ -1,5 +1,5 @@
-class Tenant < ActiveRecord::Base
-  acts_as_universal_and_determines_tenant
+class Account < ActiveRecord::Base
+  acts_as_universal_and_determines_account
 
   has_many :members, dependent: :destroy
   has_many :posts, dependent: :destroy
@@ -10,18 +10,18 @@ class Tenant < ActiveRecord::Base
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-    def self.create_new_tenant(tenant_params, user_params, coupon_params)
+    def self.create_new_account(account_params, user_params, coupon_params)
 
-      tenant = Tenant.new(:name => tenant_params[:name])
+      account = Account.new(:name => account_params[:name])
 
       if new_signups_not_permitted?(coupon_params)
 
-        raise ::Milia::Control::MaxTenantExceeded, "Sorry, new accounts not permitted at this time" 
+        raise ::Milia::Control::MaxAccountExceeded, "Sorry, new accounts not permitted at this time" 
 
       else 
-        tenant.save    # create the tenant
+        account.save    # create the account
       end
-      return tenant
+      return account
     end
 
   # ------------------------------------------------------------------------
@@ -34,17 +34,17 @@ class Tenant < ActiveRecord::Base
   end
 
   # ------------------------------------------------------------------------
-  # tenant_signup -- setup a new tenant in the system
+  # account_signup -- setup a new account in the system
   # CALLBACK from devise RegistrationsController (milia override)
-  # AFTER user creation and current_tenant established
+  # AFTER user creation and current_account established
   # args:
   #   user  -- new user  obj
-  #   tenant -- new tenant obj
+  #   account -- new account obj
   #   other  -- any other parameter string from initial request
   # ------------------------------------------------------------------------
-    def self.tenant_signup(user, tenant, other = nil)
-      #  StartupJob.queue_startup( tenant, user, other )
-      # any special seeding required for a new organizational tenant
+    def self.account_signup(user, account, other = nil)
+      #  StartupJob.queue_startup( account, user, other )
+      # any special seeding required for a new organizational account
       #
       Member.create_org_admin(user)
       #

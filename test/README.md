@@ -8,7 +8,7 @@ to aid future upgrade efforts.
 
 Milia v0.3 used factory_girl to generate test fixtures, but there
 were difficulties dealing with both the dynamic nature of creating
-objects which had to have an existing current_tenant established. In
+objects which had to have an existing current_account established. In
 between v0.3 and v1.0, factory_girl upgraded significantly and meant
 all the test code would have to be reworked.
 
@@ -20,23 +20,23 @@ the easiest way to have the test data fixtures.
 
 ### Required by Milia/Devise
 
-Universal (non-tenanted)
+Universal (non-accounted)
 ```
   User
     has_one: member
-    habtm: tenants
+    habtm: accounts
 
-  Tenant
+  Account
     has_many: members
     habtm: users
 
-  tenants_users HABTM join table
+  accounts_users HABTM join table
 ```
 
 ### models added for typical app complexity
 
-Tenanted
-<i>Means they all have an implicit: belongs_to: tenant</i>
+Accounted
+<i>Means they all have an implicit: belongs_to: account</i>
 
 ```
   Member

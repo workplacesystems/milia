@@ -2,63 +2,63 @@ module Milia
 
   class RegistrationsController < Devise::RegistrationsController
 
-  skip_before_action :authenticate_tenant!, :only => [:new, :create, :cancel]
+  skip_before_action :authenticate_account!, :only => [:new, :create, :cancel]
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # TODO: options if non-standard path for new signups view
 # ------------------------------------------------------------------------------
 # create -- intercept the POST create action upon new sign-up
-# new tenant account is vetted, then created, then proceed with devise create user
-# CALLBACK: Tenant.create_new_tenant  -- prior to completing user account
-# CALLBACK: Tenant.tenant_signup      -- after completing user account
+# new account account is vetted, then created, then proceed with devise create user
+# CALLBACK: Account.create_new_account  -- prior to completing user account
+# CALLBACK: Account.account_signup      -- after completing user account
 # ------------------------------------------------------------------------------
 def create
-    # have a working copy of the params in case Tenant callbacks
+    # have a working copy of the params in case Account callbacks
     # make any changes
-  tenant_params = sign_up_params_tenant
+  account_params = sign_up_params_account
   user_params   = sign_up_params_user
   coupon_params = sign_up_params_coupon
   
   sign_out_session!
      # next two lines prep signup view parameters
-  prep_signup_view( tenant_params, user_params, coupon_params )
+  prep_signup_view( account_params, user_params, coupon_params )
 
      # validate recaptcha first unless not enabled
   if !::Milia.use_recaptcha  ||  verify_recaptcha
 
-    Tenant.transaction  do 
-      @tenant = Tenant.create_new_tenant( tenant_params, user_params, coupon_params)
-      if @tenant.errors.empty?   # tenant created
+    Account.transaction  do 
+      @account = Account.create_new_account( account_params, user_params, coupon_params)
+      if @account.errors.empty?   # account created
         
-        initiate_tenant( @tenant )    # first time stuff for new tenant
+        initiate_account( @account )    # first time stuff for new account
 
         devise_create( user_params )   # devise resource(user) creation; sets resource
 
         if resource.errors.empty?   #  SUCCESS!
 
-          log_action( "signup user/tenant success", resource )
-            # do any needed tenant initial setup
-          Tenant.tenant_signup(resource, @tenant, coupon_params)
+          log_action( "signup user/account success", resource )
+            # do any needed account initial setup
+          Account.account_signup(resource, @account, coupon_params)
 
-        else  # user creation failed; force tenant rollback
+        else  # user creation failed; force account rollback
           log_action( "signup user create failed", resource )
-          raise ActiveRecord::Rollback   # force the tenant transaction to be rolled back  
+          raise ActiveRecord::Rollback   # force the account transaction to be rolled back  
         end  # if..then..else for valid user creation
 
       else
         resource.valid?
-        log_action( "tenant create failed", @tenant )
+        log_action( "account create failed", @account )
         render :new
-      end # if .. then .. else no tenant errors
+      end # if .. then .. else no account errors
 
-    end  #  wrap tenant/user creation in a transaction
+    end  #  wrap account/user creation in a transaction
         
   else
     flash[:error] = "Recaptcha codes didn't match; please try again"
        # all validation errors are passed when the sign_up form is re-rendered
     resource.valid?
-    @tenant.valid?
+    @account.valid?
     log_action( "recaptcha failed", resource )
     render :new
   end
@@ -78,8 +78,8 @@ end   # def create
  
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-  def sign_up_params_tenant()
-    params.require(:tenant).permit( ::Milia.whitelist_tenant_params )
+  def sign_up_params_account()
+    params.require(:account).permit( ::Milia.whitelist_account_params )
   end
 
 # ------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ end   # def create
     else
       clean_up_passwords resource
       log_action( "devise: signup user failure", resource )
-      prep_signup_view(  @tenant, resource, params[:coupon] )   
+      prep_signup_view(  @account, resource, params[:coupon] )   
       respond_with resource
     end
   end

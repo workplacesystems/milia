@@ -13,8 +13,25 @@
 
 ActiveRecord::Schema.define(version: 20111013050837) do
 
+  create_table "accounts", force: true do |t|
+    t.integer  "account_id"
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "accounts", ["account_id"], name: "index_accounts_on_account_id"
+  add_index "accounts", ["name"], name: "index_accounts_on_name"
+
+  create_table "accounts_users", id: false, force: true do |t|
+    t.integer "account_id", null: false
+    t.integer "user_id",    null: false
+  end
+
+  add_index "accounts_users", ["account_id", "user_id"], name: "index_accounts_users_on_account_id_and_user_id"
+
   create_table "members", force: true do |t|
-    t.integer  "tenant_id"
+    t.integer  "account_id"
     t.integer  "user_id"
     t.string   "first_name"
     t.string   "last_name"
@@ -22,11 +39,11 @@ ActiveRecord::Schema.define(version: 20111013050837) do
     t.datetime "updated_at"
   end
 
-  add_index "members", ["tenant_id"], name: "index_members_on_tenant_id"
+  add_index "members", ["account_id"], name: "index_members_on_account_id"
   add_index "members", ["user_id"], name: "index_members_on_user_id"
 
   create_table "posts", force: true do |t|
-    t.integer  "tenant_id"
+    t.integer  "account_id"
     t.integer  "member_id"
     t.integer  "zine_id"
     t.string   "content"
@@ -34,8 +51,8 @@ ActiveRecord::Schema.define(version: 20111013050837) do
     t.datetime "updated_at"
   end
 
+  add_index "posts", ["account_id"], name: "index_posts_on_account_id"
   add_index "posts", ["member_id"], name: "index_posts_on_member_id"
-  add_index "posts", ["tenant_id"], name: "index_posts_on_tenant_id"
   add_index "posts", ["zine_id"], name: "index_posts_on_zine_id"
 
   create_table "sessions", force: true do |t|
@@ -49,42 +66,25 @@ ActiveRecord::Schema.define(version: 20111013050837) do
   add_index "sessions", ["updated_at"], name: "index_sessions_on_updated_at"
 
   create_table "team_assets", force: true do |t|
-    t.integer  "tenant_id"
+    t.integer  "account_id"
     t.integer  "member_id"
     t.integer  "team_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
+  add_index "team_assets", ["account_id"], name: "index_team_assets_on_account_id"
   add_index "team_assets", ["member_id"], name: "index_team_assets_on_member_id"
   add_index "team_assets", ["team_id"], name: "index_team_assets_on_team_id"
-  add_index "team_assets", ["tenant_id"], name: "index_team_assets_on_tenant_id"
 
   create_table "teams", force: true do |t|
-    t.integer  "tenant_id"
+    t.integer  "account_id"
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "teams", ["tenant_id"], name: "index_teams_on_tenant_id"
-
-  create_table "tenants", force: true do |t|
-    t.integer  "tenant_id"
-    t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "tenants", ["name"], name: "index_tenants_on_name"
-  add_index "tenants", ["tenant_id"], name: "index_tenants_on_tenant_id"
-
-  create_table "tenants_users", id: false, force: true do |t|
-    t.integer "tenant_id", null: false
-    t.integer "user_id",   null: false
-  end
-
-  add_index "tenants_users", ["tenant_id", "user_id"], name: "index_tenants_users_on_tenant_id_and_user_id"
+  add_index "teams", ["account_id"], name: "index_teams_on_account_id"
 
   create_table "users", force: true do |t|
     t.string   "email",                        default: "",    null: false
@@ -102,7 +102,7 @@ ActiveRecord::Schema.define(version: 20111013050837) do
     t.datetime "confirmation_sent_at"
     t.string   "unconfirmed_email"
     t.boolean  "skip_confirm_change_password", default: false
-    t.integer  "tenant_id"
+    t.integer  "account_id"
     t.string   "authentication_token"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -114,13 +114,13 @@ ActiveRecord::Schema.define(version: 20111013050837) do
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
 
   create_table "zines", force: true do |t|
-    t.integer  "tenant_id"
+    t.integer  "account_id"
     t.integer  "team_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
+  add_index "zines", ["account_id"], name: "index_zines_on_account_id"
   add_index "zines", ["team_id"], name: "index_zines_on_team_id"
-  add_index "zines", ["tenant_id"], name: "index_zines_on_tenant_id"
 
 end

@@ -9,9 +9,9 @@
 #
 # The "app" itself is merely a simple barebones structure to display
 # an index page, require sign-in to do anything else, has a sign-up
-# page for starting a new organization (ie tenant), a way to send
-# invitations to other members, and a single tenanted model to prove
-# that tenanting is working.
+# page for starting a new organization (ie account), a way to send
+# invitations to other members, and a single accounted model to prove
+# that accounting is working.
 #
 # you can see an exact copy of the sample on github:
 #   https://github.com/dsaronin/sample-milia-app

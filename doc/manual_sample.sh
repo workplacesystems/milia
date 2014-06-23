@@ -14,9 +14,9 @@
 #
 # The "app" itself is merely a simple barebones structure to display
 # an index page, require sign-in to do anything else, has a sign-up
-# page for starting a new organization (ie tenant), a way to send
-# invitations to other members, and a single tenanted model to prove
-# that tenanting is working.
+# page for starting a new organization (ie account), a way to send
+# invitations to other members, and a single accounted model to prove
+# that accounting is working.
 #
 # you can see an exact copy of the sample on github:
 #   https://github.com/dsaronin/sample-milia-app
@@ -399,7 +399,7 @@ export RECAPTCHA_PRIVATE_KEY=6LeBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBgQBv
 # STEP 4 - TEST devise SIGN UP, ACTIVATION, SIGN IN, SIGN OUT
 # *********************************************************************
 # NOTE: we will later DELETE all users added in this manner BEFORE we
-# install milia. Reason is because currently there is no tenanting.
+# install milia. Reason is because currently there is no accounting.
 # DO NOT TRY TO LATER MANUALLY ATTEMPT TO CONVERT THESE INITIAL USERS
 # TO A TENANTING MODEL: it is poor software practice to do that.
 # you are just testing and verifying that we've got devise up and enabled.
@@ -417,7 +417,7 @@ export RECAPTCHA_PRIVATE_KEY=6LeBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBgQBv
 # sign in again as the user
 
 # *********************************************************************
-# STEP 5 - adding in milia and making multi-tenantable
+# STEP 5 - adding in milia and making multi-accountable
 # *********************************************************************
 # remove any users created above in STEP 4
 # start the rails console
@@ -445,37 +445,37 @@ export RECAPTCHA_PRIVATE_KEY=6LeBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBgQBv
       # milia member_invitable
       t.boolean    :skip_confirm_change_password, :default => false
 
-      t.references :tenant
+      t.references :account
 #<<<< EDIT <<<<<<<<<<<<<<<<<
 
-# generate the tenant migration
-  $ rails g model tenant tenant:references name:string:index
+# generate the account migration
+  $ rails g model account account:references name:string:index
 
-# generate the tenants_users join table migration
-  $ rails g migration CreateTenantsUsersJoinTable tenants users
+# generate the accounts_users join table migration
+  $ rails g migration CreateAccountsUsersJoinTable accounts users
 
-# EDIT: db/migrate/20131119092046_create_tenants_users_join_table.rb >>>>>>>>>>
+# EDIT: db/migrate/20131119092046_create_accounts_users_join_table.rb >>>>>>>>>>
 # then uncomment the first index line as follows:
-      t.index [:tenant_id, :user_id]
+      t.index [:account_id, :user_id]
 #<<<< EDIT <<<<<<<<<<<<<<<<<
 
 # EDIT: app/controllers/application_controller.rb  >>>>>>>>>>>>>>>>>>>>>
-# NOTE: before all tenanted controllers,  you MUST HAVE a 
-#     before_action :authenticate_tenant!
+# NOTE: before all accounted controllers,  you MUST HAVE a 
+#     before_action :authenticate_account!
 # It is best to have it at the start of your application_controller
 # If you happen to have any general universal access controllers,
 # then you can place at the top of those specific controllers:
-#     skip_before_action :authenticate_tenant!, :only => [ <action name>  ]
+#     skip_before_action :authenticate_account!, :only => [ <action name>  ]
 #
-# CHANGE: comment authenticate_user! line to authenticate_tenant!
+# CHANGE: comment authenticate_user! line to authenticate_account!
 # (make it look like the statement below)
-  before_action :authenticate_tenant!   # authenticates user and sets up tenant
+  before_action :authenticate_account!   # authenticates user and sets up account
 
 # ADD following lines immediately after that: >>>>>>>>>>>>>>>>>>>>>>>>>>
 
-  rescue_from ::Milia::Control::MaxTenantExceeded, :with => :max_tenants
-  rescue_from ::Milia::Control::InvalidTenantAccess, :with => :invalid_tenant
-# milia defines a default max_tenants, invalid_tenant exception handling
+  rescue_from ::Milia::Control::MaxAccountExceeded, :with => :max_accounts
+  rescue_from ::Milia::Control::InvalidAccountAccess, :with => :invalid_account
+# milia defines a default max_accounts, invalid_account exception handling
 # but you can override if you wish to handle directly
 #<<<<<< ADD  <<<<<<<<<<<<
 
@@ -503,25 +503,25 @@ export RECAPTCHA_PRIVATE_KEY=6LeBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBgQBv
 #<<<< EDIT <<<<<<<<<<<<<<<<<
 
 
-# EDIT: app/models/tenant.rb >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# EDIT: app/models/account.rb >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # DELETE
-  belongs_to  :tenant
+  belongs_to  :account
 
-# ADD after the class Tenant line: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    acts_as_universal_and_determines_tenant
+# ADD after the class Account line: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    acts_as_universal_and_determines_account
 
-  def self.create_new_tenant(tenant_params, coupon_params)
+  def self.create_new_account(account_params, coupon_params)
 
-    tenant = Tenant.new(:name => tenant_params[:name])
+    account = Account.new(:name => account_params[:name])
 
     if new_signups_not_permitted?(coupon_params)
 
-      raise ::Milia::Control::MaxTenantExceeded, "Sorry, new accounts not permitted at this time" 
+      raise ::Milia::Control::MaxAccountExceeded, "Sorry, new accounts not permitted at this time" 
 
     else 
-      tenant.save    # create the tenant
+      account.save    # create the account
     end
-    return tenant
+    return account
   end
 
   # ------------------------------------------------------------------------
@@ -534,25 +534,25 @@ export RECAPTCHA_PRIVATE_KEY=6LeBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBgQBv
   end
 
   # ------------------------------------------------------------------------
-  # tenant_signup -- setup a new tenant in the system
+  # account_signup -- setup a new account in the system
   # CALLBACK from devise RegistrationsController (milia override)
-  # AFTER user creation and current_tenant established
+  # AFTER user creation and current_account established
   # args:
   #   user  -- new user  obj
-  #   tenant -- new tenant obj
+  #   account -- new account obj
   #   other  -- any other parameter string from initial request
   # ------------------------------------------------------------------------
-    def self.tenant_signup(user, tenant, other = nil)
-      #  StartupJob.queue_startup( tenant, user, other )
-      # any special seeding required for a new organizational tenant
+    def self.account_signup(user, account, other = nil)
+      #  StartupJob.queue_startup( account, user, other )
+      # any special seeding required for a new organizational account
     end
 #<<<<<< ADD  <<<<<<<<<<<<
 
 #<<<< EDIT <<<<<<<<<<<<<<<<<
 
 # EDIT: app/controllers/home_controller.rb
-# CHANGE skip_authenticate_user! to skip_authenticate_tenant!
-  skip_before_action :authenticate_tenant!, :only => [ :index ]
+# CHANGE skip_authenticate_user! to skip_authenticate_account!
+  skip_before_action :authenticate_account!, :only => [ :index ]
 
 # REPLACE the empty def index ... end with following ADD:
 # this will give you improved handling for letting user know
@@ -603,26 +603,26 @@ export RECAPTCHA_PRIVATE_KEY=6LeBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBgQBv
 
 
 # *********************************************************************
-# STEP 6 - adding a tenanted members table, then inviting a member
+# STEP 6 - adding a accounted members table, then inviting a member
 # *********************************************************************
-# remove any users, and tenants created above in STEP 5
+# remove any users, and accounts created above in STEP 5
 # start the rails console
   $ rails c
     > User.all.each{|x| x.destroy}
-    > Tenant.all.each{|x| x.destroy}
+    > Account.all.each{|x| x.destroy}
     > exit
 
 
-  $ rails g resource member tenant:references user:references first_name:string last_name:string favorite_color:string
+  $ rails g resource member account:references user:references first_name:string last_name:string favorite_color:string
 
-# ADD to app/models/tenant.rb
+# ADD to app/models/account.rb
   has_many :members, dependent: :destroy
 
-# EDIT self.tenant_signup method
+# EDIT self.account_signup method
   # ------------------------------------------------------------------------
-    def self.tenant_signup(user, tenant, other = nil)
-      #  StartupJob.queue_startup( tenant, user, other )
-      # any special seeding required for a new organizational tenant
+    def self.account_signup(user, account, other = nil)
+      #  StartupJob.queue_startup( account, user, other )
+      # any special seeding required for a new organizational account
 
       Member.create_org_admin(user)
     end
@@ -636,9 +636,9 @@ export RECAPTCHA_PRIVATE_KEY=6LeBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBgQBv
 
 
 # EDIT app/models/member.rb
-# REMOVE belongs_to :tenant
+# REMOVE belongs_to :account
 # ADD
-  acts_as_tenant
+  acts_as_account
 
   DEFAULT_ADMIN = {
     first_name: "Admin",
@@ -715,7 +715,7 @@ private
 # org_name will be passed to layout & view
   def prep_org_name()
     @org_name = ( user_signed_in?  ?
-      Tenant.current_tenant.name  :
+      Account.current_account.name  :
       "Simple Milia App"
     )
 
@@ -723,7 +723,7 @@ private
 
 # EDIT app/views/layouts/application.rb >>>>>>>>>>>>>>>>>>>>
 # the following is not a requirement, but serves to show
-# how to handle tenanted sign ins and welcome pages
+# how to handle accounted sign ins and welcome pages
 # replaces the two instances of "Simple Milia App" with 
 # (everything bewtween the quotes but not including the quotes):
 # "= @org_name", make the results look like the two lines below
@@ -791,26 +791,26 @@ private
 # you will have to first sign-up, confirm, then you can invite_member
 # sign-out, confirm new member, etc
 
-# MILIA API EXPLAINED: Tenant.current_tenant, etc
+# MILIA API EXPLAINED: Account.current_account, etc
 
 # from controller-level:
 
-  set_current_tenant( tenant_id )
-    raise InvalidTenantAccess unless tenant_id is one of the current_user valid tenants
+  set_current_account( account_id )
+    raise InvalidAccountAccess unless account_id is one of the current_user valid accounts
 
 # from model-level:
-  Tenant.current_tenant -- return tenant object for the current tenant; nil if none
+  Account.current_account -- return account object for the current account; nil if none
 
-  Tenant.current_tenant_id -- returns tenant_id for the current tenant; nil if none
+  Account.current_account_id -- returns account_id for the current account; nil if none
 
 # from background job s (only at the start of the task); 
-# tenant can either be a tenant object or an integer tenant_id; anything else will raise
+# account can either be a account object or an integer account_id; anything else will raise
 # exception
-# set_current_tenant -- model-level ability to set the current tenant
+# set_current_account -- model-level ability to set the current account
 # NOTE: *USE WITH CAUTION* normally this should *NEVER* be done from
 # the models ... it is only useful and safe WHEN performed at the start
 # of a background job (DelayedJob#perform)
 
-  Tenant.set_current_tenant( tenant )
-    raise ArgumentError, "invalid tenant object or id"
+  Account.set_current_account( account )
+    raise ArgumentError, "invalid account object or id"
 

@@ -5,15 +5,15 @@ class TeamTest < ActiveSupport::TestCase
   context "a team" do
     
     setup do
-      Tenant.set_current_tenant( tenants( :tenant_2 ).id )
+      Account.set_current_account( accounts( :account_2 ).id )
       @team = Team.first
     end
 
 
-# validate multi-tenanting structure
-    should have_db_column(:tenant_id)
-    should "match the current tenant" do
-      assert_equal  @team.tenant_id, Thread.current[:tenant_id]
+# validate multi-accounting structure
+    should have_db_column(:account_id)
+    should "match the current account" do
+      assert_equal  @team.account_id, Thread.current[:account_id]
     end
 
     should have_many( :team_assets )
@@ -31,8 +31,8 @@ class TeamTest < ActiveSupport::TestCase
       assert_equal 3, teams( :team_2_a ).posts.count
     end  #should do
 
-    should 'match a team with tenant' do
-      assert_equal  2,teams( :team_2_b ).tenant_id
+    should 'match a team with account' do
+      assert_equal  2,teams( :team_2_b ).account_id
     end  # should do
 
     should 'check team assets' do

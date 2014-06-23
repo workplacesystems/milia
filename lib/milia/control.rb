@@ -2,8 +2,8 @@ module Milia
   module Control
 
 # #############################################################################
-    class InvalidTenantAccess < SecurityError; end
-    class MaxTenantExceeded < ArgumentError; end
+    class InvalidAccountAccess < SecurityError; end
+    class MaxAccountExceeded < ArgumentError; end
 # #############################################################################
     
     def self.included(base)
@@ -22,26 +22,26 @@ module Milia
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-  def __milia_change_tenant!( tid )
-    old_id = ( Thread.current[:tenant_id].nil? ? '%' : Thread.current[:tenant_id] )
+  def __milia_change_account!( tid )
+    old_id = ( Thread.current[:account_id].nil? ? '%' : Thread.current[:account_id] )
     new_id = ( tid.nil? ? '%' : tid.to_s )
-    Thread.current[:tenant_id] = tid
-    session[:tenant_id] = tid  # remember it going forward
-    logger.debug("MILIA >>>>> [change tenant] new: #{new_id}\told: #{old_id}") unless logger.nil?
+    Thread.current[:account_id] = tid
+    session[:account_id] = tid  # remember it going forward
+    logger.debug("MILIA >>>>> [change account] new: #{new_id}\told: #{old_id}") unless logger.nil?
   end
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-  def __milia_reset_tenant!( )
-    __milia_change_tenant!( nil )
-    logger.debug("MILIA >>>>> [reset tenant] ") unless logger.nil?
+  def __milia_reset_account!( )
+    __milia_change_account!( nil )
+    logger.debug("MILIA >>>>> [reset account] ") unless logger.nil?
   end
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-  def trace_tenanting( fm_msg )
+  def trace_accounting( fm_msg )
     if ::Milia.trace_on
-      tid = ( session[:tenant_id].nil? ? "%/#{Thread.current[:tenant_id]}" : session[:tenant_id].to_s )
+      tid = ( session[:account_id].nil? ? "%/#{Thread.current[:account_id]}" : session[:account_id].to_s )
       uid = ( current_user.nil?  ?  "%/#{session[:user_id]}"  : "#{current_user.id}")
       logger.debug( 
          "MILIA >>>>> [#{fm_msg}] stid: #{tid}\tuid: #{uid}\tus-in: #{user_signed_in?}" 
@@ -50,55 +50,55 @@ module Milia
   end
 
 # ------------------------------------------------------------------------------
-# set_current_tenant -- sets the tenant id for the current invocation (thread)
+# set_current_account -- sets the account id for the current invocation (thread)
 # args
-#   tenant_id -- integer id of the tenant; nil if get from current user
-# EXCEPTIONS -- InvalidTenantAccess
+#   account_id -- integer id of the account; nil if get from current user
+# EXCEPTIONS -- InvalidAccountAccess
 # ------------------------------------------------------------------------------
-    def set_current_tenant( tenant_id = nil )
+    def set_current_account( account_id = nil )
 
       if user_signed_in?
         
-        @_my_tenants ||= current_user.tenants  # gets all possible tenants for user
+        @_my_accounts ||= current_user.accounts  # gets all possible accounts for user
         
-        tenant_id ||= session[:tenant_id]   # use session tenant_id ?
+        account_id ||= session[:account_id]   # use session account_id ?
         
-        if tenant_id.nil?  # no arg; find automatically based on user
-          tenant_id = @_my_tenants.first.id  # just pick the first one
-        else   # validate the specified tenant_id before setup
-          raise InvalidTenantAccess unless @_my_tenants.any?{|tu| tu.id == tenant_id}
+        if account_id.nil?  # no arg; find automatically based on user
+          account_id = @_my_accounts.first.id  # just pick the first one
+        else   # validate the specified account_id before setup
+          raise InvalidAccountAccess unless @_my_accounts.any?{|tu| tu.id == account_id}
         end
 
       else   # user not signed in yet...
-        tenant_id = nil   # an impossible tenant_id
+        account_id = nil   # an impossible account_id
       end
 
-      __milia_change_tenant!( tenant_id )        
-      trace_tenanting( "set_current_tenant" )
+      __milia_change_account!( account_id )        
+      trace_accounting( "set_current_account" )
 
       true    # before filter ok to proceed
     end
     
 # ------------------------------------------------------------------------------
-# initiate_tenant -- initiates first-time tenant; establishes thread
+# initiate_account -- initiates first-time account; establishes thread
 # assumes not in a session yet (since here only upon new account sign-up)
-# ONLY for brand-new tenants upon User account sign up
+# ONLY for brand-new accounts upon User account sign up
 # arg
-#   tenant -- tenant obj of the new tenant
+#   account -- account obj of the new account
 # ------------------------------------------------------------------------------
-  def initiate_tenant( tenant )
-      __milia_change_tenant!( tenant.id )        
+  def initiate_account( account )
+      __milia_change_account!( account.id )        
   end
   
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-# authenticate_tenant! -- authorization & tenant setup
+# authenticate_account! -- authorization & account setup
 # -- authenticates user
-# -- sets current tenant
+# -- sets current account
 # ------------------------------------------------------------------------------
-  def authenticate_tenant!()
+  def authenticate_account!()
     unless authenticate_user!
       email = ( params.nil? || params[:user].nil?  ?  "<email missing>"  : params[:user][:email] )
       flash[:error] = "cannot sign in as #{email}; check email/password"
@@ -106,17 +106,17 @@ module Milia
       return false  # abort the before_filter chain
     end
 
-    trace_tenanting( "authenticate_tenant!" )
+    trace_accounting( "authenticate_account!" )
 
     # user_signed_in? == true also means current_user returns valid user
     raise SecurityError,"*** invalid user_signed_in  ***" unless user_signed_in?
 
-    set_current_tenant   # relies on current_user being non-nil
+    set_current_account   # relies on current_user being non-nil
 
-      # successful tenant authentication; do any callback
-    if self.respond_to?( :callback_authenticate_tenant, true )
-      logger.debug("MILIA >>>>> [auth_tenant callback]")
-      self.send( :callback_authenticate_tenant )
+      # successful account authentication; do any callback
+    if self.respond_to?( :callback_authenticate_account, true )
+      logger.debug("MILIA >>>>> [auth_account callback]")
+      self.send( :callback_authenticate_account )
     end
 
     true  # allows before filter chain to continue
@@ -124,9 +124,9 @@ module Milia
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-  def max_tenants()
+  def max_accounts()
     logger.info(
-      "MILIA >>>>> [max tenant signups] #{Time.now.to_s(:db)} - User: #{params[:user][:email]}, org: #{params[:tenant][:name]}"
+      "MILIA >>>>> [max account signups] #{Time.now.to_s(:db)} - User: #{params[:user][:email]}, org: #{params[:account][:name]}"
     ) unless logger.nil?
 
     flash[:error] = "Sorry: new accounts not permitted at this time"
@@ -139,10 +139,10 @@ module Milia
   end
   
 # ------------------------------------------------------------------------------
-# invalid_tenant -- using wrong or bad data
+# invalid_account -- using wrong or bad data
 # ------------------------------------------------------------------------------
-  def invalid_tenant
-    flash[:error] = "wrong tenant access; sign out & try again"
+  def invalid_account
+    flash[:error] = "wrong account access; sign out & try again"
     redirect_back
   end
  
@@ -172,14 +172,14 @@ module Milia
 # ------------------------------------------------------------------------------
   # prep_signup_view -- prepares for the signup view
   # args:
-  #   tenant: either existing tenant obj or params for tenant
+  #   account: either existing account obj or params for account
   #   user:   either existing user obj or params for user
   # My signup form has fields for user's email, 
-  # organization's name (tenant model), coupon code, 
+  # organization's name (account model), coupon code, 
 # ------------------------------------------------------------------------------
-  def prep_signup_view(tenant=nil, user=nil, coupon={coupon:''})
+  def prep_signup_view(account=nil, user=nil, coupon={coupon:''})
     @user   = klass_option_obj( User, user )
-    @tenant = klass_option_obj( Tenant, tenant )
+    @account = klass_option_obj( Account, account )
     @coupon = coupon #  if ::Milia.use_coupon
  end
 

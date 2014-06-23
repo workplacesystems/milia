@@ -10,109 +10,109 @@ module Milia
     module ClassMethods
 
 # ------------------------------------------------------------------------
-# acts_as_tenant -- makes a tenanted model
-# Forces all references to be limited to current_tenant rows
+# acts_as_account -- makes a accounted model
+# Forces all references to be limited to current_account rows
 # ------------------------------------------------------------------------
-      def acts_as_tenant()
-        belongs_to  :tenant
-        validates_presence_of :tenant_id
+      def acts_as_account()
+        belongs_to  :account
+        validates_presence_of :account_id
 
-        default_scope lambda { where( "#{table_name}.tenant_id = ?", Thread.current[:tenant_id] ) }
+        default_scope lambda { where( "#{table_name}.account_id = ?", Thread.current[:account_id] ) }
 
       # ..........................callback enforcers............................
-        before_validation(:on => :create) do |obj|   # force tenant_id to be correct for current_user
-          obj.tenant_id = Thread.current[:tenant_id]
+        before_validation(:on => :create) do |obj|   # force account_id to be correct for current_user
+          obj.account_id = Thread.current[:account_id]
           true  #  ok to proceed
         end
 
       # ..........................callback enforcers............................
-        before_save do |obj|   # force tenant_id to be correct for current_user
+        before_save do |obj|   # force account_id to be correct for current_user
           # raise exception if updates attempted on wrong data
-          raise ::Milia::Control::InvalidTenantAccess unless obj.tenant_id == Thread.current[:tenant_id]
+          raise ::Milia::Control::InvalidAccountAccess unless obj.account_id == Thread.current[:account_id]
           true  #  ok to proceed
         end
 
       # ..........................callback enforcers............................
         # no longer needed because before_save invoked prior to before_update
         #
-#         before_update do |obj|   # force tenant_id to be correct for current_user
-#           raise ::Milia::Control::InvalidTenantAccess unless obj.tenant_id == Thread.current[:tenant_id]
+#         before_update do |obj|   # force account_id to be correct for current_user
+#           raise ::Milia::Control::InvalidAccountAccess unless obj.account_id == Thread.current[:account_id]
 #           true  #  ok to proceed
 #         end
 
       # ..........................callback enforcers............................
-        before_destroy do |obj|   # force tenant_id to be correct for current_user
-          raise ::Milia::Control::InvalidTenantAccess unless obj.tenant_id == Thread.current[:tenant_id]
+        before_destroy do |obj|   # force account_id to be correct for current_user
+          raise ::Milia::Control::InvalidAccountAccess unless obj.account_id == Thread.current[:account_id]
           true  #  ok to proceed
         end
 
       end
 
 # ------------------------------------------------------------------------
-# acts_as_universal -- makes a univeral (non-tenanted) model
-# Forces all reference to the universal tenant (nil)
+# acts_as_universal -- makes a univeral (non-accounted) model
+# Forces all reference to the universal account (nil)
 # ------------------------------------------------------------------------
       def acts_as_universal()
-        belongs_to  :tenant
+        belongs_to  :account
 
-        default_scope { where( "#{table_name}.tenant_id IS NULL" ) }
+        default_scope { where( "#{table_name}.account_id IS NULL" ) }
 
       # ..........................callback enforcers............................
-        before_save do |obj|   # force tenant_id to be universal
-          raise ::Milia::Control::InvalidTenantAccess unless obj.tenant_id.nil?
+        before_save do |obj|   # force account_id to be universal
+          raise ::Milia::Control::InvalidAccountAccess unless obj.account_id.nil?
           true  #  ok to proceed
         end
 
       # ..........................callback enforcers............................
-#         before_update do |obj|   # force tenant_id to be universal
+#         before_update do |obj|   # force account_id to be universal
         # no longer needed because before_save invoked prior to before_update
         #
-#           raise ::Milia::Control::InvalidTenantAccess unless obj.tenant_id.nil?
+#           raise ::Milia::Control::InvalidAccountAccess unless obj.account_id.nil?
 #           true  #  ok to proceed
 #         end
 
       # ..........................callback enforcers............................
-        before_destroy do |obj|   # force tenant_id to be universal
-          raise ::Milia::Control::InvalidTenantAccess unless obj.tenant_id.nil?
+        before_destroy do |obj|   # force account_id to be universal
+          raise ::Milia::Control::InvalidAccountAccess unless obj.account_id.nil?
           true  #  ok to proceed
         end
 
       end
       
 # ------------------------------------------------------------------------
-# acts_as_universal_and_determines_tenant_reference
+# acts_as_universal_and_determines_account_reference
 # All the characteristics of acts_as_universal AND also does the magic
-# of binding a user to a tenant
+# of binding a user to a account
 # ------------------------------------------------------------------------
       def acts_as_universal_and_determines_account()
         include ::Milia::InviteMember
-        has_and_belongs_to_many :tenants
+        has_and_belongs_to_many :accounts
 
         acts_as_universal()
 
-           # validate that a tenant exists prior to a user creation
+           # validate that a account exists prior to a user creation
         before_create do |new_user|
-          if Thread.current[:tenant_id].blank? ||
-             !Thread.current[:tenant_id].kind_of?(Integer) ||
-             Thread.current[:tenant_id].zero?
+          if Thread.current[:account_id].blank? ||
+             !Thread.current[:account_id].kind_of?(Integer) ||
+             Thread.current[:account_id].zero?
 
-            raise ::Milia::Control::InvalidTenantAccess,"no existing valid current tenant" 
+            raise ::Milia::Control::InvalidAccountAccess,"no existing valid current account" 
 
           end
         end  # before create callback do
         
-          # before create, tie user with current tenant
+          # before create, tie user with current account
           # return true if ok to proceed; false if break callback chain
         after_create do |new_user|
-          tenant = Tenant.find( Thread.current[:tenant_id] )
-          unless tenant.users.include?(new_user)
-            tenant.users << new_user  # add user to this tenant if not already there
+          account = Account.find( Thread.current[:account_id] )
+          unless account.users.include?(new_user)
+            account.users << new_user  # add user to this account if not already there
           end
 
         end # before_create do
         
         before_destroy do |old_user|
-          old_user.tenants.clear    # remove all tenants for this user
+          old_user.accounts.clear    # remove all accounts for this user
           true
         end # before_destroy do
         
@@ -120,30 +120,30 @@ module Milia
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-  def acts_as_universal_and_determines_tenant()
+  def acts_as_universal_and_determines_account()
     has_and_belongs_to_many :users
 
     acts_as_universal()
     
-    before_destroy do |old_tenant|
-      old_tenant.users.clear  # remove all users from this tenant
+    before_destroy do |old_account|
+      old_account.users.clear  # remove all users from this account
       true
     end # before_destroy do
   end
 
 # ------------------------------------------------------------------------
-# current_tenant -- returns tenant obj for current tenant
-  # return nil if no current tenant defined
+# current_account -- returns account obj for current account
+  # return nil if no current account defined
 # ------------------------------------------------------------------------
-  def current_tenant()
+  def current_account()
     begin
-      tenant = (
-        Thread.current[:tenant_id].blank?  ?
+      account = (
+        Thread.current[:account_id].blank?  ?
         nil  :
-        Tenant.find( Thread.current[:tenant_id] )
+        Account.find( Thread.current[:account_id] )
       )
 
-      return tenant
+      return account
 
     rescue ActiveRecord::RecordNotFound
       return nil
@@ -151,45 +151,45 @@ module Milia
   end
     
 # ------------------------------------------------------------------------
-# current_tenant_id -- returns tenant_id for current tenant
+# current_account_id -- returns account_id for current account
 # ------------------------------------------------------------------------
-  def current_tenant_id()
-    return Thread.current[:tenant_id]
+  def current_account_id()
+    return Thread.current[:account_id]
   end
   
 # ------------------------------------------------------------------------
-# set_current_tenant -- model-level ability to set the current tenant
+# set_current_account -- model-level ability to set the current account
 # NOTE: *USE WITH CAUTION* normally this should *NEVER* be done from
 # the models ... it's only useful and safe WHEN performed at the start
 # of a background job (DelayedJob#perform)
 # ------------------------------------------------------------------------
-  def set_current_tenant( tenant )
-      # able to handle tenant obj or tenant_id
-    case tenant
-      when Tenant then tenant_id = tenant.id
-      when Integer then tenant_id = tenant
+  def set_current_account( account )
+      # able to handle account obj or account_id
+    case account
+      when Account then account_id = account.id
+      when Integer then account_id = account
       else
-        raise ArgumentError, "invalid tenant object or id"
+        raise ArgumentError, "invalid account object or id"
     end  # case
     
-    old_id = ( Thread.current[:tenant_id].nil? ? '%' : Thread.current[:tenant_id] )
-    Thread.current[:tenant_id] = tenant_id
-    logger.debug("MILIA >>>>> [Tenant#change_tenant] new: #{tenant_id}\told:#{old_id}") unless logger.nil?
+    old_id = ( Thread.current[:account_id].nil? ? '%' : Thread.current[:account_id] )
+    Thread.current[:account_id] = account_id
+    logger.debug("MILIA >>>>> [Account#change_account] new: #{account_id}\told:#{old_id}") unless logger.nil?
 
   end
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
  
 # ------------------------------------------------------------------------
-# where_restrict_tenant -- gens tenant restrictive where clause for each klass
+# where_restrict_account -- gens account restrictive where clause for each klass
 # NOTE: subordinate join tables will not get the default scope by Rails
 # theoretically, the default scope on the master table alone should be sufficient
-# in restricting answers to the current_tenant alone .. HOWEVER, it doesn't feel
-# right. adding an additional .where( where_restrict_tenants(klass1, klass2,...))
+# in restricting answers to the current_account alone .. HOWEVER, it doesn't feel
+# right. adding an additional .where( where_restrict_accounts(klass1, klass2,...))
 # for each of the subordinate models in the join seems like a nice safety issue.
 # ------------------------------------------------------------------------
-  def where_restrict_tenant(*args)
-    args.map{|klass| "#{klass.table_name}.tenant_id = #{Thread.current[:tenant_id]}"}.join(" AND ")
+  def where_restrict_account(*args)
+    args.map{|klass| "#{klass.table_name}.account_id = #{Thread.current[:account_id]}"}.join(" AND ")
   end
   
 # ------------------------------------------------------------------------

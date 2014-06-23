@@ -53,15 +53,15 @@ module Milia
   # specify each attribute as a symbol
   # example: [:name]
   # config.whitelist_user_params = []
-  @@whitelist_tenant_params = []
+  @@whitelist_account_params = []
 
-  def self.whitelist_tenant_params=(list)
+  def self.whitelist_account_params=(list)
     raise ArgumentError unless !list.nil? && list.kind_of?( Array )
-    @@whitelist_tenant_params = list
+    @@whitelist_account_params = list
   end
 
-  def self.whitelist_tenant_params()
-    return @@whitelist_tenant_params << :name
+  def self.whitelist_account_params()
+    return @@whitelist_account_params << :name
   end
 
   # whitelist coupon params list

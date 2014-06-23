@@ -1,5 +1,5 @@
 class Member < ActiveRecord::Base
-  acts_as_tenant
+  acts_as_account
 
   belongs_to :user
   has_many :team_assets

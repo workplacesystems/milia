@@ -1,5 +1,5 @@
 class Zine < ActiveRecord::Base
-  acts_as_tenant
+  acts_as_account
   
     belongs_to  :team
     has_many    :posts

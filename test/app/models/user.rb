@@ -7,7 +7,7 @@ class User < ActiveRecord::Base
          :recoverable, :rememberable, :trackable, :validatable
 
   has_one  :member, :dependent => :destroy
-  has_many :tenanted_members, :dependent => :destroy,
+  has_many :accounted_members, :dependent => :destroy,
            :class_name => "Member", :foreign_key => 'user_id'
 
 

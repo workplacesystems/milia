@@ -36,11 +36,11 @@ Milia.setup do |config|
   # example: [:name]
   # config.whitelist_user_params = []
 
-  # whitelist tenant params list
+  # whitelist account params list
   # allows an app to expand the permitted attribute list
   # specify each attribute as a symbol
   # example: [:name]
-  # config.whitelist_tenant_params = []
+  # config.whitelist_account_params = []
 
   # whitelist coupon params list
   # allows an app to expand the permitted attribute list

@@ -1,5 +1,5 @@
 class Post < ActiveRecord::Base
-  acts_as_tenant
+  acts_as_account
   
   belongs_to  :member
   belongs_to  :zine
@@ -7,7 +7,7 @@ class Post < ActiveRecord::Base
 
 
   def self.get_team_posts( team_id )
-#     Post.where( where_restrict_tenant(Zine, Member) )\
+#     Post.where( where_restrict_account(Zine, Member) )\
 #         .order("members.last_name")
   end
 

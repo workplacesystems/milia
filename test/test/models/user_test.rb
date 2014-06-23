@@ -13,26 +13,26 @@ class UserTest < ActiveSupport::TestCase
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
     setup do
-      Tenant.set_current_tenant( tenants( :tenant_1 ).id )
+      Account.set_current_account( accounts( :account_1 ).id )
       @user = users(:quentin)
     end
 
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
     should have_one( :member )
-    should have_many( :tenanted_members )
-    should have_and_belong_to_many( :tenants )
+    should have_many( :accounted_members )
+    should have_and_belong_to_many( :accounts )
     should_not allow_value("wild blue").for(:email)
     
-    should have_db_column(:tenant_id)
+    should have_db_column(:account_id)
     should have_db_column(:skip_confirm_change_password).with_options(default: false)
 
     should have_db_index(:email)
     should have_db_index(:confirmation_token)
     should have_db_index(:reset_password_token)
     
-    should "define the current tenant" do
-      assert  Thread.current[:tenant_id]
+    should "define the current account" do
+      assert  Thread.current[:account_id]
     end
 
     should 'have password' do
@@ -91,13 +91,13 @@ class UserTest < ActiveSupport::TestCase
 # #############################################################################
 
 
-    should 'NOT create new user when invalid current tenant - string' do
-              # force the current_tenant to be unexpected object
-      Thread.current[:tenant_id] = 'peanut clusters'
+    should 'NOT create new user when invalid current account - string' do
+              # force the current_account to be unexpected object
+      Thread.current[:account_id] = 'peanut clusters'
       
       assert_no_difference("User.count") do
-        assert_raise(::Milia::Control::InvalidTenantAccess,
-          "no existing valid current tenant")   {
+        assert_raise(::Milia::Control::InvalidAccountAccess,
+          "no existing valid current account")   {
    
             # setup new user
           user = User.new(email: "limesublime@example.com")
@@ -107,13 +107,13 @@ class UserTest < ActiveSupport::TestCase
  
     end  # should do
 
-    should 'NOT create new user when invalid current tenant - nil' do
-              # force the current_tenant to be nil
-      Thread.current[:tenant_id] = nil
+    should 'NOT create new user when invalid current account - nil' do
+              # force the current_account to be nil
+      Thread.current[:account_id] = nil
       
       assert_no_difference("User.count") do
-        assert_raise(::Milia::Control::InvalidTenantAccess,
-          "no existing valid current tenant")   {
+        assert_raise(::Milia::Control::InvalidAccountAccess,
+          "no existing valid current account")   {
    
             # setup new user
           user = User.new(email: "limesublime@example.com")
@@ -123,13 +123,13 @@ class UserTest < ActiveSupport::TestCase
  
     end  # should do
 
-    should 'NOT create new user when invalid current tenant - zero' do
-              # force the current_tenant to be 0
-      Thread.current[:tenant_id] = 0
+    should 'NOT create new user when invalid current account - zero' do
+              # force the current_account to be 0
+      Thread.current[:account_id] = 0
       
       assert_no_difference("User.count") do
-        assert_raise(::Milia::Control::InvalidTenantAccess,
-          "no existing valid current tenant")   {
+        assert_raise(::Milia::Control::InvalidAccountAccess,
+          "no existing valid current account")   {
    
             # setup new user
           user = User.new(email: "limesublime@example.com")
@@ -140,13 +140,13 @@ class UserTest < ActiveSupport::TestCase
     end  # should do
 
 # this validates both the before_create and after_create for users
-    should 'create new user when valid current tenant' do
-      tenant = tenants(:tenant_1)
-      assert_equal 1,tenant.users.count
+    should 'create new user when valid current account' do
+      account = accounts(:account_1)
+      assert_equal 1,account.users.count
       
       assert_difference("User.count") do
-        assert_nothing_raised(::Milia::Control::InvalidTenantAccess,
-          "no existing valid current tenant")   {
+        assert_nothing_raised(::Milia::Control::InvalidAccountAccess,
+          "no existing valid current account")   {
    
             # setup new user
           user = User.new(email: "limesublime@example.com")
@@ -154,20 +154,20 @@ class UserTest < ActiveSupport::TestCase
         }
       end  # no difference
 
-      tenant.reload
-      assert_equal 2,tenant.users.count
+      account.reload
+      assert_equal 2,account.users.count
  
     end  # should do
 
 
-    should 'destroy a user and clear its tenants habtm' do
-      tenant = tenants(:tenant_2)
-      Tenant.set_current_tenant( tenant )
+    should 'destroy a user and clear its accounts habtm' do
+      account = accounts(:account_2)
+      Account.set_current_account( account )
       quentin = users(:quentin)
-      assert_equal 3,tenant.users.count
+      assert_equal 3,account.users.count
       quentin.destroy
-      tenant.reload
-      assert_equal 2,tenant.users.count
+      account.reload
+      assert_equal 2,account.users.count
     end # should do
 
 

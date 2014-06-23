@@ -51,20 +51,20 @@ sharing code (inheritance, mixins, etc.):
   
 http://samuel.kadolph.com/2010/12/simple-rails-multi-tenancy/
 =================================================================== 
-class Tenant < ActiveRecord::Base
+class Account < ActiveRecord::Base
   class << self
     def current
-      Thread.current[:current_tenant]
+      Thread.current[:current_account]
     end
 
-    def current=(tenant)
-      Thread.current[:current_tenant] = tenant
+    def current=(account)
+      Thread.current[:current_account] = account
     end
   end
 end
 
-app/models/tenant_scoped_model.rb
-class TenantScopedModel < ActiveRecord::Base
+app/models/account_scoped_model.rb
+class AccountScopedModel < ActiveRecord::Base
   self.abstract_class = true
 
   class << self
@@ -75,27 +75,27 @@ class TenantScopedModel < ActiveRecord::Base
       end      
   end
 
-  belongs_to :tenant
+  belongs_to :account
 
-  default_scope lambda { where('tenant_id = ?', Tenant.current) }
+  default_scope lambda { where('account_id = ?', Account.current) }
 
-  before_save { self.tenant = Tenant.current }
+  before_save { self.account = Account.current }
 end
 
 class ApplicationController < ActionController::Base
   before_filter do
-    @tenant = Tenant.current = Tenant.find_by_host!(request.host)
+    @account = Account.current = Account.find_by_host!(request.host)
   end
 end
 
 Caveats
 
-Calling unscoped bypasses the default_scope; this is both good and bad because you can get all partitioned data from a model regardless of the current tenant.
-You will get errors in the console when working with a scoped model unless you set Tenant.current.
-before_save { self.tenant = Tenant.current } is necessary because rails does not automatically set the attributes from our default_scope because it is a lambda.
+Calling unscoped bypasses the default_scope; this is both good and bad because you can get all partitioned data from a model regardless of the current account.
+You will get errors in the console when working with a scoped model unless you set Account.current.
+before_save { self.account = Account.current } is necessary because rails does not automatically set the attributes from our default_scope because it is a lambda.
 
 
-http://www.justinball.com/2011/09/27/customizing-views-for-a-multi-tenant-application-using-ruby-on-rails-custom-resolvers/
+http://www.justinball.com/2011/09/27/customizing-views-for-a-multi-account-application-using-ruby-on-rails-custom-resolvers/
 ===============================================================================
  but setting a global on the current thread felt like a big hack. (Here's a good article on Thread.current ) Lucky for me Jose was willing to spend a little time working with me and the resulting code works without globals. Instead of passing a global around we removed the Singleton code from the resolver and create an instance of the resolver per each account:
 

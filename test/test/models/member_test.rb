@@ -5,18 +5,18 @@ class MemberTest < ActiveSupport::TestCase
   context "a member" do
     
     setup do
-      Tenant.set_current_tenant( tenants( :tenant_1 ).id )
+      Account.set_current_account( accounts( :account_1 ).id )
       @member = members(:quentin_1)
     end
 
-# validate multi-tenanting structure
-    should have_db_column(:tenant_id)
-    should "define the current tenant" do
-      assert  Thread.current[:tenant_id]
+# validate multi-accounting structure
+    should have_db_column(:account_id)
+    should "define the current account" do
+      assert  Thread.current[:account_id]
     end
-    should "match the current tenant" do
+    should "match the current account" do
       a_member = Member.first
-      assert_equal  a_member.tenant_id, Thread.current[:tenant_id]
+      assert_equal  a_member.account_id, Thread.current[:account_id]
     end
 
 # validate the model
@@ -29,13 +29,13 @@ class MemberTest < ActiveSupport::TestCase
 # validate specific member methods
     should 'create new member for new admin' do
         # setup new world
-      tenant = Tenant.create_new_tenant( 
+      account = Account.create_new_account( 
             {name:   "Mangoland"}, 
             {email:  "billybob@bob.com"}, 
             {coupon: "FreeTrial"}
       )
-      assert tenant.errors.empty?
-      Tenant.set_current_tenant( tenant )  # change world to new tenant
+      assert account.errors.empty?
+      Account.set_current_account( account )  # change world to new account
 
         # setup new user
       user = User.new(email: "limesublime@example.com")
@@ -51,17 +51,17 @@ class MemberTest < ActiveSupport::TestCase
 
       assert_equal  Member::DEFAULT_ADMIN[:first_name],member.first_name
       assert_equal  Member::DEFAULT_ADMIN[:last_name],member.last_name
-      assert_equal  tenant.id, member.tenant_id
+      assert_equal  account.id, member.account_id
       assert_equal  user.member,member
 
     end   # should do
 
-    should 'create new member for existing tenant' do
-      tenant = tenants( :tenant_1 )
+    should 'create new member for existing account' do
+      account = accounts( :account_1 )
       user = users( :quentin )
       member = Member.create_new_member( user, {last_name: 'Blue', first_name: 'Wild'} )
       assert  member.errors.empty?
-      assert_equal  tenant.id, member.tenant_id
+      assert_equal  account.id, member.account_id
       assert_equal  user.member,member
     end  # should do
 

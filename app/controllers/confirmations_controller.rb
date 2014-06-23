@@ -5,7 +5,7 @@ module Milia
 
   class ConfirmationsController < Devise::ConfirmationsController
 
-    skip_before_action :authenticate_tenant! 
+    skip_before_action :authenticate_account! 
     before_action      :set_confirmable, :only => [ :update, :show ]
 
 
@@ -23,7 +23,7 @@ module Milia
         log_action( "invitee confirmed" )
         set_flash_message(:notice, :confirmed) if is_flashing_format?
           # sign in automatically
-        sign_in_tenanted_and_redirect(resource)
+        sign_in_accounted_and_redirect(resource)
         
       else
         log_action( "invitee confirmation failed" )
@@ -47,7 +47,7 @@ module Milia
       log_action( "devise pass-thru" )
       super  # this will redirect 
       if @confirmable.skip_confirm_change_password
-        sign_in_tenanted(resource)
+        sign_in_accounted(resource)
       end
     else
       log_action( "password set form" )
@@ -81,17 +81,17 @@ module Milia
     ) unless logger.nil?
   end
   
-  # MILIA: adaptation of Devise method for multitenanting
+  # MILIA: adaptation of Devise method for multiaccounting
       # Sign in a user
-      def sign_in_tenanted(resource)
+      def sign_in_accounted(resource)
         sign_in( resource )
-        trace_tenanting( "sign in tenanted" )
-        set_current_tenant
+        trace_accounting( "sign in accounted" )
+        set_current_account
       end
 
       # Sign in a user and tries to redirect 
-      def sign_in_tenanted_and_redirect(resource)
-        sign_in_tenanted(resource)
+      def sign_in_accounted_and_redirect(resource)
+        sign_in_accounted(resource)
         redirect_to after_sign_in_path_for(resource)
       end
 
