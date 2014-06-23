@@ -1,14 +1,14 @@
 class User < ActiveRecord::Base
   acts_as_universal_and_determines_user
-  
+
   # Include default devise modules. Others available are:
   # :lockable, :encryptable,  and :omniauthable
   devise :database_authenticatable, :registerable, :confirmable,
-         :recoverable, :rememberable, :trackable, :validatable
+    :recoverable, :rememberable, :trackable, :validatable
 
   has_one  :member, :dependent => :destroy
   has_many :accounted_members, :dependent => :destroy,
-           :class_name => "Member", :foreign_key => 'user_id'
+    :class_name => "Member", :foreign_key => 'user_id'
 
 
 end

@@ -3,14 +3,14 @@ require 'test_helper'
 class TeamTest < ActiveSupport::TestCase
 
   context "a team" do
-    
+
     setup do
       Account.set_current_account( accounts( :account_2 ).id )
       @team = Team.first
     end
 
 
-# validate multi-accounting structure
+    # validate multi-accounting structure
     should have_db_column(:account_id)
     should "match the current account" do
       assert_equal  @team.account_id, Thread.current[:account_id]
@@ -18,11 +18,11 @@ class TeamTest < ActiveSupport::TestCase
 
     should have_many( :team_assets )
     should have_many( :team_members ).through( :team_assets )
-    
+
     should have_many( :zines )
     should have_many( :posts ).through( :zines )
 
-# validate the particular associations in the model
+    # validate the particular associations in the model
     should 'find team members through teams' do
       assert_equal 2, teams( :team_2_b ).team_members.count
     end  #should do

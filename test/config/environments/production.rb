@@ -1,6 +1,6 @@
 Miliatest::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-   
+
   # devise says to define default url
   config.action_mailer.default_url_options = { :host => 'secure.simple-milia-app.com', :protocol => 'https' }
 

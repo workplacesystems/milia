@@ -4,10 +4,10 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
 
   before_action :authenticate_account!
-  
-     ##    milia defines a default max_accounts, invalid_account exception handling
-     ##    but you can override these if you wish to handle directly
+
+  ##    milia defines a default max_accounts, invalid_account exception handling
+  ##    but you can override these if you wish to handle directly
   rescue_from ::Milia::Control::MaxAccountExceeded, :with => :max_accounts
   rescue_from ::Milia::Control::InvalidAccountAccess, :with => :invalid_account
- 
+
 end

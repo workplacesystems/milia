@@ -2,37 +2,37 @@ require 'rails/generators/base'
 
 module Milia
   module Generators
-# *************************************************************
-    
+    # *************************************************************
+
     class TempGenerator < Rails::Generators::Base
       desc "Temp for debugging/testing"
 
       source_root File.expand_path("../templates", __FILE__)
-  
-
-  def wrapup()
-    alert_color = :red
-    say("-   milia installation complete", alert_color)
-    say("-   please edit your email, domain, password in config/environments", alert_color)
-    say("-   please run migrations: $ rake db:migrate", alert_color)
-  end
 
 
-private
+      def wrapup()
+        alert_color = :red
+        say("-   milia installation complete", alert_color)
+        say("-   please edit your email, domain, password in config/environments", alert_color)
+        say("-   please run migrations: $ rake db:migrate", alert_color)
+      end
 
-  def find_or_fail( filename )
-    user_file = Dir.glob(filename).first
-    if user_file.blank? 
-      say_status("error", "file: '#{filename}' not found", :red)
-      raise Thor::Error, "************  terminating generator due to file error!  *************" 
-    end
-    return user_file
-  end
-  
 
-# *************************************************************
+      private
 
-protected
+      def find_or_fail( filename )
+        user_file = Dir.glob(filename).first
+        if user_file.blank?
+          say_status("error", "file: '#{filename}' not found", :red)
+          raise Thor::Error, "************  terminating generator due to file error!  *************"
+        end
+        return user_file
+      end
+
+
+      # *************************************************************
+
+      protected
 
       def bundle_command(command)
         say_status :run, "bundle #{command}"
@@ -62,10 +62,10 @@ protected
       end
 
 
-  
+
 
     end  # class TempGen
 
-# *************************************************************
+    # *************************************************************
   end # module Gen
 end # module Milia

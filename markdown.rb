@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-  require 'rubygems'
-  require 'redcarpet'
+require 'rubygems'
+require 'redcarpet'
 
 class ShowMd
 

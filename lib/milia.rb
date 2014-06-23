@@ -43,8 +43,8 @@ module Milia
   end
 
   def self.whitelist_user_params()
-    return [:email, :password, :password_confirmation] + 
-           @@whitelist_user_params
+    return [:email, :password, :password_confirmation] +
+      @@whitelist_user_params
   end
 
 
@@ -86,9 +86,9 @@ module Milia
   mattr_accessor :trace_on
   @@trace_on = false
 
-  # Default way to setup milia. 
+  # Default way to setup milia.
   def self.setup
     yield self
   end
-  
+
 end # module Milia

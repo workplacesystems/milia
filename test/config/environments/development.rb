@@ -1,6 +1,6 @@
 Miliatest::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-   
+
   # devise says to define default url
   config.action_mailer.default_url_options = { :host => 'localhost:3000' }
 
@@ -9,7 +9,7 @@ Miliatest::Application.configure do
   config.action_mailer.raise_delivery_errors = false
 
   config.action_mailer.delivery_method = :smtp
-  
+
   ActionMailer::Base.smtp_settings = {
     :address => "smtp.gmail.com",
     :port => "587",
