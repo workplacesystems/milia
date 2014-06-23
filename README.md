@@ -1,8 +1,8 @@
 # milia
 
-Milia is a multi-accounting gem for hosted Rails 4.0.x applications which use
-the devise gem for user authentication and registrations. Milia comes with 
-tailoring for common use cases needing multi-accounting with user authentication.
+Milia is a multi-tenanting gem the devise gem for user authentication and registrations.
+
+Our fork simply renames 'Tenant' to 'Account' and indents the code.
 
 ## Basic concepts for the milia multi-accounting gem
 
